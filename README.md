@@ -12,6 +12,6 @@ pip install -r requirements.txt
 python src/main.py
 
 ## Pembagian Modul
-- models: berisi struktur bakcend (data dan logic)
+- models: berisi struktur backend (data dan logic)
 - views: tampilan GUI
 - controllers: jembatan antara view dan model
