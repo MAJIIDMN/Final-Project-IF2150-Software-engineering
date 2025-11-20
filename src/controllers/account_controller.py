@@ -2,6 +2,14 @@ from services.database import DatabaseService
 from models.user import User, Order
 
 class AccountController:
+    _NEAREST_POINT = {
+        "a": "b",
+        "b": "d",
+        "c": "e",
+        "d": "b",
+        "e": "c",
+    }
+
     def __init__(self):
         self.db = DatabaseService() # Koneksi ke SQLite
         self.current_user = None
@@ -51,6 +59,10 @@ class AccountController:
         else:
             print("Login gagal: Data tidak ditemukan di database.")
 
+    def _get_nearest_point(self, from_point):
+        key = from_point.strip().lower()
+        return self._NEAREST_POINT.get(key)
+
     def create_order(self):
         """Membuat pesanan baru (Khusus Client)."""
         if not self.is_logged_in or self.current_user.role != 'client':
@@ -59,6 +71,12 @@ class AccountController:
         print("\n--- BUAT ORDER ---")
         jenis = input("Jenis Sampah: ")
         berat = float(input("Berat (kg): "))
+        from_point = input("Titik asal (a/b/c/d/e): ").strip().lower()
+        nearest_point = self._get_nearest_point(from_point)
+        if nearest_point:
+            print(f"Titik WC terdekat dari {from_point.upper()} adalah {nearest_point.upper()}.")
+        else:
+            print("Titik asal tidak dikenal, lewati perhitungan titik terdekat.")
         foto = "foto_dummy.jpg"
 
         new_order = Order(self.current_user.id, jenis, berat, foto)
