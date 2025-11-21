@@ -33,6 +33,7 @@ def main(page: ft.Page):
     def on_focus(e, field_ref):
         field_ref.current.label_style = ft.TextStyle(color="#000000")
         page.update()
+    
     def on_blur_label(e, field_ref):
         field_ref.current.label_style = ft.TextStyle(color="#c2c2c2")
         page.update()
@@ -295,6 +296,7 @@ def main(page: ft.Page):
                         ft.Text("Already have an account?", size=13, color="#666666", font_family="Poppins"),
                         ft.TextButton(
                             "Login",
+                            on_click=lambda e: go_to_login(e),
                             style=ft.ButtonStyle(
                                 color="#d32f2f",
                                 padding=0,
