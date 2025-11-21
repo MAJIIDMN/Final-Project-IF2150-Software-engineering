@@ -1,15 +1,19 @@
-from PyQt5.QtWidgets import QApplication
+import flet as ft
 import sys
+import os
 
-from views.example_view import ExampleWindow
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-def main():
-    app = QApplication(sys.argv)
-    
-    window = ExampleWindow()
-    window.show()
-    
-    sys.exit(app.exec_())
+from views.signup_window import main as signup_main
+
+def app_main(page: ft.Page):
+    try:
+        page.signup_main = signup_main
+        signup_main(page)
+    except Exception as e:
+        print(f"Error: {e}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
-    main()
+    ft.app(target=app_main)
