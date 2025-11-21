@@ -98,6 +98,11 @@ def main(page: ft.Page):
         page.clean()
         page.signup_main(page)
     
+    # Fungsi navigasi ke Forgot Password
+    def go_to_forgot_password(e):
+        page.clean()
+        page.forget_password_main(page)
+    
     # Left side - Image
     right_side = ft.Container(
         content=ft.Image(
@@ -171,6 +176,7 @@ def main(page: ft.Page):
                                     ),
                                     ft.TextButton(
                                         "Forgot Password",
+                                        on_click=go_to_forgot_password,
                                         style=ft.ButtonStyle(
                                             color="#d32f2f",
                                         ),
