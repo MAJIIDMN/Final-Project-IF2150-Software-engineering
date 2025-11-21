@@ -20,3 +20,13 @@ class Order:
         self.foto = foto
         self.status = status
         self.wc_id = wc_id
+
+class PointMartdb:
+    def __init__(self, idHadiah, namaHadiah, pointCost, stock, foto_path="", description="", kategori=""):
+        self.id = idHadiah
+        self.namaHadiah = namaHadiah
+        self.pointCost = pointCost
+        self.stock = stock
+        self.foto_path = foto_path
+        self.description = description
+        self.kategori = kategori

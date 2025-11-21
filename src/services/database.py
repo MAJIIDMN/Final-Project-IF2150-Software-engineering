@@ -3,7 +3,7 @@ import pandas as pd
 
 class DatabaseService:
     def __init__(self, db_name="src/database/growbak.db"):
-        self.conn = sqlite3.connect(db_name)
+        self.conn = sqlite3.connect(db_name, check_same_thread=False)
         self.cursor = self.conn.cursor()
         self.create_tables()
 

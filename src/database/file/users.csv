@@ -1,0 +1,4 @@
+id,username,password,email,role,point,kecamatan
+U001,majiid,admin123,majiid@example.com,client,100,'Cicendo'
+U002,admin,admin123,admin@example.com,admin,0,'Cicendo'
+U003,user123,admin123,user123@example.com,client,50,'Cicendo'
