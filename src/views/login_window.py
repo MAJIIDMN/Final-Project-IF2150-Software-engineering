@@ -1,5 +1,8 @@
 import flet as ft
 import re
+from controllers.account_controller import AccountController
+
+acc = AccountController()
 
 fonts = {
     "Poppins": "fonts/poppins/Poppins-Regular.ttf",
@@ -56,7 +59,7 @@ def main(page: ft.Page):
         # Reset error messages
         email.current.error_text = None
         password.current.error_text = None
-        
+
         # Validasi
         is_valid = True
         
@@ -70,29 +73,44 @@ def main(page: ft.Page):
         if not password.current.value:
             password.current.error_text = "Password harus diisi"
             is_valid = False
-        
+
         page.update()
+
+        # Tidak valid → stop
+        if not is_valid:
+            return
         
-        if is_valid:
-            def close_dialog(e):
-                dialog.open = False
-                page.update()
-                # Reset form
-                email.current.value = ""
-                password.current.value = ""
-                page.update()
-            
+        def close_dialog(e):
+            dialog.open = False
+            page.update()
+
+        user = acc.login(email.current.value, password.current.value)
+
+        #jujur harusnya dah nyambung sama backend 
+        #tapi gatau kenapa nih dialog gagal sama berhasilnya gamau keluar
+        #tapi tadi aku debung emg bisa jalan dan bisa login. tolong atur lah ya Frontend wkwkwk
+
+        if user is None:
+            # Login gagal
             dialog = ft.AlertDialog(
-                title=ft.Text("Berhasil!"),
-                content=ft.Text("Login berhasil!"),
-                actions=[
-                    ft.TextButton("OK", on_click=close_dialog)
-                ]
+                title=ft.Text("Gagal!"),
+                content=ft.Text("Email atau password salah"),
+                actions=[ft.TextButton("OK", on_click=close_dialog)],
             )
             page.dialog = dialog
             dialog.open = True
             page.update()
-    
+            return
+        
+        dialog = ft.AlertDialog(
+            title=ft.Text("Berhasil!"),
+            content=ft.Text(f"Selamat datang, {user.username}!"),
+            actions=[ft.TextButton("OK", on_click=close_dialog)],
+        )
+        page.dialog = dialog
+        dialog.open = True
+        page.update()
+
     # Fungsi navigasi ke Sign Up
     def go_to_signup(e):
         page.clean()

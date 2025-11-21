@@ -1,5 +1,6 @@
 import flet as ft
 import re
+from controllers.account_controller import AccountController
 
 fonts = {
     "Poppins": "fonts/poppins/Poppins-Regular.ttf",
@@ -7,6 +8,7 @@ fonts = {
     "PoppinsSBold": "fonts/poppins/Poppins-SemiBold.ttf",
 }
 
+acc = AccountController()  
 
 def main(page: ft.Page):
     page.title = "GrowBak - Sign Up"
@@ -109,7 +111,12 @@ def main(page: ft.Page):
             is_valid = False
         
         page.update()
+
+        newUser = acc.register(first_name.current.value, last_name.current.value, email.current.value, phone.current.value, address.current.value, password.current.value)
         
+        #nih kasusnya sama kyk login sih wkwkwk
+
+
         if is_valid:
             # Tampilkan dialog sukses
             def close_dialog(e):
@@ -124,6 +131,19 @@ def main(page: ft.Page):
                 password.current.value = ""
                 confirm_password.current.value = ""
                 page.update()
+
+            if newUser is not None:
+                dialog = ft.AlertDialog(
+                    title=ft.Text("Gagal!"),
+                    content=ft.Text("Account gagal dibuat!"),
+                    actions=[
+                        ft.TextButton("OK", on_click=close_dialog)
+                    ]
+                )
+                page.dialog = dialog
+                dialog.open = True
+                page.update()
+                return
             
             dialog = ft.AlertDialog(
                 title=ft.Text("Berhasil!"),
