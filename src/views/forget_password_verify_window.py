@@ -91,7 +91,7 @@ def main(page: ft.Page):
                 ),
                 ft.Row(
                     [
-                        ft.Image(src="img/logo.png", width=200),
+                        ft.Image(src="img/logo_only.png", width=200),
                     ],
                     spacing=10,
                     vertical_alignment=ft.CrossAxisAlignment.CENTER,

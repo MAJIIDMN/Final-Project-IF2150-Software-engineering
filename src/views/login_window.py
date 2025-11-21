@@ -29,7 +29,6 @@ def main(page: ft.Page):
     def on_focus(e, field_ref):
         field_ref.current.label_style = ft.TextStyle(color="#000000")
         page.update()
-    
     def on_blur_label(e, field_ref):
         field_ref.current.label_style = ft.TextStyle(color="#c2c2c2")
         page.update()
@@ -48,7 +47,7 @@ def main(page: ft.Page):
             checkbox.current.fill_color = "#1e8c45"   # warna saat dicentang
             checkbox.current.check_color = "#FFFFFF"
         else:
-            checkbox.current.fill_color = "#9e9e9e"   # warna saat tidak dicentang
+            checkbox.current.fill_color = "#FFFFFF"   # warna saat tidak dicentang
         page.update()
 
     # Fungsi login
@@ -74,24 +73,8 @@ def main(page: ft.Page):
         page.update()
         
         if is_valid:
-            def close_dialog(e):
-                dialog.open = False
-                page.update()
-                # Reset form
-                email.current.value = ""
-                password.current.value = ""
-                page.update()
-            
-            dialog = ft.AlertDialog(
-                title=ft.Text("Berhasil!"),
-                content=ft.Text("Login berhasil!"),
-                actions=[
-                    ft.TextButton("OK", on_click=close_dialog)
-                ]
-            )
-            page.dialog = dialog
-            dialog.open = True
-            page.update()
+            page.clean()
+            page.point_mart_main(page)
     
     # Fungsi navigasi ke Sign Up
     def go_to_signup(e):
