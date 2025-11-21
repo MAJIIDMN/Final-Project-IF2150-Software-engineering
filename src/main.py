@@ -5,10 +5,12 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from views.signup_window import main as signup_main
+from views.login_window import main as login_main
 
 def app_main(page: ft.Page):
     try:
         page.signup_main = signup_main
+        page.login_main = login_main
         signup_main(page)
     except Exception as e:
         print(f"Error: {e}")
