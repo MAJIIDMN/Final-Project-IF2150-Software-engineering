@@ -1,0 +1,3 @@
+id,username,password,email,role,point,rating,kecamatan
+C00001,dummyuser,dummypw,dum@gmail.com,client,0,0,Cidadap
+W00001,dummywc,wcwcwc,wc@gmail.com,wc,0,0,Sukasari
