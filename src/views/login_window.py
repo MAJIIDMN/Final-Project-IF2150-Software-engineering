@@ -1,5 +1,8 @@
 import flet as ft
 import re
+from controllers.account_controller import AccountController
+
+acc = AccountController()
 
 fonts = {
     "Poppins": "fonts/poppins/Poppins-Regular.ttf",
@@ -29,7 +32,6 @@ def main(page: ft.Page):
     def on_focus(e, field_ref):
         field_ref.current.label_style = ft.TextStyle(color="#000000")
         page.update()
-    
     def on_blur_label(e, field_ref):
         field_ref.current.label_style = ft.TextStyle(color="#c2c2c2")
         page.update()
@@ -48,7 +50,7 @@ def main(page: ft.Page):
             checkbox.current.fill_color = "#1e8c45"   # warna saat dicentang
             checkbox.current.check_color = "#FFFFFF"
         else:
-            checkbox.current.fill_color = "#9e9e9e"   # warna saat tidak dicentang
+            checkbox.current.fill_color = "#FFFFFF"   # warna saat tidak dicentang
         page.update()
 
     # Fungsi login
@@ -56,7 +58,7 @@ def main(page: ft.Page):
         # Reset error messages
         email.current.error_text = None
         password.current.error_text = None
-        
+
         # Validasi
         is_valid = True
         
@@ -70,33 +72,58 @@ def main(page: ft.Page):
         if not password.current.value:
             password.current.error_text = "Password harus diisi"
             is_valid = False
-        
+
         page.update()
+
+        if not is_valid:
+            return
         
-        if is_valid:
-            def close_dialog(e):
-                dialog.open = False
-                page.update()
-                # Reset form
-                email.current.value = ""
-                password.current.value = ""
-                page.update()
-            
+        def close_dialog(e):
+            dialog.open = False
+            page.update()
+
+        user = acc.login(email.current.value, password.current.value)
+
+        #jujur harusnya dah nyambung sama backend 
+        #tapi gatau kenapa nih dialog gagal sama berhasilnya gamau keluar
+        #tapi tadi aku debung emg bisa jalan dan bisa login. tolong atur lah ya Frontend wkwkwk
+
+        if user is None:
+            # Login gagal
             dialog = ft.AlertDialog(
-                title=ft.Text("Berhasil!"),
-                content=ft.Text("Login berhasil!"),
-                actions=[
-                    ft.TextButton("OK", on_click=close_dialog)
-                ]
+                title=ft.Text("Gagal!"),
+                content=ft.Text("Email atau password salah"),
+                actions=[ft.TextButton("OK", on_click=close_dialog)],
             )
             page.dialog = dialog
             dialog.open = True
             page.update()
-    
+            return
+        
+        go_to_point_mart(None)
+        dialog = ft.AlertDialog(
+            title=ft.Text("Berhasil!"),
+            content=ft.Text(f"Selamat datang, {user.username}!"),
+            actions=[ft.TextButton("OK", on_click=close_dialog)],
+        )
+        page.dialog = dialog
+        dialog.open = True
+        page.update()
+        # page.point_mart_main(page)
+
     # Fungsi navigasi ke Sign Up
     def go_to_signup(e):
         page.clean()
         page.signup_main(page)
+    
+    # Fungsi navigasi ke Forgot Password
+    def go_to_forgot_password(e):
+        page.clean()
+        page.forget_password_main(page)
+
+    def go_to_point_mart(e):
+        page.clean()
+        page.point_mart_main(page)
     
     # Left side - Image
     right_side = ft.Container(
@@ -171,6 +198,7 @@ def main(page: ft.Page):
                                     ),
                                     ft.TextButton(
                                         "Forgot Password",
+                                        on_click=go_to_forgot_password,
                                         style=ft.ButtonStyle(
                                             color="#d32f2f",
                                         ),

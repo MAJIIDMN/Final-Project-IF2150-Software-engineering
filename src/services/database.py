@@ -105,6 +105,12 @@ class DatabaseService:
         self.cursor.execute(query, params)
         return self.cursor.fetchall()
     
+    def load_all(self, table: str):
+        """Mengambil seluruh baris data (untuk List Order)."""
+        query = f"SELECT * FROM {table}"
+        self.cursor.execute(query)
+        return self.cursor.fetchall()
+    
     def insert_from_csv(self, table: str, file_path: str):
         """Memasukkan data dari file CSV ke tabel tertentu."""
         df = pd.read_csv(file_path)

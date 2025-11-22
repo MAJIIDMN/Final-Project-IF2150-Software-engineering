@@ -114,6 +114,8 @@ def main(page: ft.Page):
             is_valid = False
         
         page.update()
+
+        newUser = acc.register(first_name.current.value, last_name.current.value, email.current.value, phone.current.value, address.current.value, password.current.value)
         
         #nih kasusnya sama kyk login sih wkwkwk
 
