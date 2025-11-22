@@ -1,0 +1,6 @@
+id,namaHadiah,pointCost,foto_path,stock,description,kategori
+H016,Watering Can,150,src/database/images/hadiah/watering_can.png,20,"A sturdy watering can to keep your plants hydrated.",Tools
+H017,Gardening Gloves,100,src/database/images/hadiah/gardening_gloves.png,30,"Protect your hands while gardening with these durable gloves.",Tools
+H018,Plant Fertilizer,200,src/database/images/hadiah/plant_fertilizer.png,25,"Boost your plant growth with this high-quality fertilizer.",Supplies
+H019,Decorative Plant Pot,250,src/database/images/hadiah/decorative_plant_pot.png,15,"A beautiful pot to showcase your favorite plants.",Decor
+H020,Mini Greenhouse,300,src/database/images/hadiah/mini_greenhouse.png,10,"Create a perfect environment for your plants with this mini greenhouse.",Tools
