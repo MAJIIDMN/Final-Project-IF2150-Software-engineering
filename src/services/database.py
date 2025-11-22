@@ -3,8 +3,6 @@ import pandas as pd
 import threading
 
 usercounter = 0
-wccounter = 0
-ocounter = 0
 
 class DatabaseService:
     def __init__(self, db_name="src/database/growbak.db"):
@@ -12,30 +10,14 @@ class DatabaseService:
         self.cursor = self.conn.cursor()
         self.lock = threading.Lock()
         self.create_tables()
-        queryC = "SELECT id FROM users WHERE id LIKE 'C%' ORDER BY id DESC LIMIT 1"
-        queryW = "SELECT id FROM users WHERE id LIKE 'W%' ORDER BY id DESC LIMIT 1"
-        queryO = "SELECT id FROM orders WHERE id LIKE 'O%' ORDER BY id DESC LIMIT 1"
-        rowC = self.fetch_one(queryC)
-        rowW = self.fetch_one(queryW)
-        rowO = self.fetch_one(queryO)
+        query = "SELECT id FROM users WHERE id LIKE 'U%' ORDER BY id DESC LIMIT 1"
+        row = self.fetch_one(query)
         global usercounter
-        global wccounter
-        global ocounter
-        if (rowC is None):
+        if not row:
             usercounter = 0
         else: 
-            last_id = rowC[0]
-            usercounter = int(last_id[2:])
-        if (rowW is None):
-            wccounter = 0
-        else:
-            last_id = rowW[0]
-            wccounter = int(last_id[2:])
-        if (rowO is None):
-            ocounter = 0
-        else:
-            last_id = rowO[0]
-            ocounter = int(last_id[2:])
+            last_id = row[0]
+            usercounter = int(last_id[1:])
 
     def create_tables(self):
         # Membuat tabel-tabel jika belum ada
@@ -45,7 +27,7 @@ class DatabaseService:
                 id TEXT PRIMARY KEY,
                 username TEXT UNIQUE,
                 password TEXT,
-                email TEXT,
+                email TEXT UNIQUE,
                 phonenumber TEXT,
                 role TEXT, -- 'client', 'wc', 'admin'
                 point INTEGER DEFAULT 0,
@@ -109,6 +91,8 @@ class DatabaseService:
                 return False, "Username sudah dipakai!"
             if "UNIQUE constraint failed: users.id" in str(e):
                 return False, "ID sudah ada di database!"
+            if "UNIQUE constraint failed: users.email" in str(e):
+                return False, "Email sudah terdaftar!"
             return False, "Terjadi kesalahan database."
 
     def fetch_one(self, query, params=()):

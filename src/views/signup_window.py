@@ -1,5 +1,6 @@
 import flet as ft
 import re
+from controllers.account_controller import AccountController
 
 fonts = {
     "Poppins": "fonts/poppins/Poppins-Regular.ttf",
@@ -7,16 +8,15 @@ fonts = {
     "PoppinsSBold": "fonts/poppins/Poppins-SemiBold.ttf",
 }
 
+acc = AccountController()  
 
 def main(page: ft.Page):
-    from controllers.account_controller import AccountController
-    app = AccountController()
     page.title = "GrowBak - Sign Up"
     page.window_width = 1440
     page.window_height = 1024
     page.padding = 0
     page.bgcolor = "#ffffff"
-    page.scroll = ft.ScrollMode.AUTO
+    page.scroll = None
     
     page.fonts = fonts
     page.theme = ft.Theme(font_family="Poppins")
@@ -115,8 +115,11 @@ def main(page: ft.Page):
         
         page.update()
         
+        #nih kasusnya sama kyk login sih wkwkwk
+
+        
         if is_valid:
-            app.register_user(
+            newUser, message = acc.register_user(
                 first_name.current.value,
                 last_name.current.value,
                 email.current.value,
@@ -125,6 +128,7 @@ def main(page: ft.Page):
                 password.current.value,
                 role="client"
             )
+
             # Tampilkan dialog sukses
             def close_dialog(e):
                 dialog.open = False
@@ -138,6 +142,20 @@ def main(page: ft.Page):
                 password.current.value = ""
                 confirm_password.current.value = ""
                 page.update()
+
+            if not newUser:
+                dialog = ft.AlertDialog(
+                    title=ft.Text("Gagal!"),
+                    content=ft.Text(message),
+                    actions=[
+                        ft.TextButton("OK", on_click=close_dialog)
+                    ]
+                )
+                page.dialog = dialog
+                page.overlay.append(dialog)
+                dialog.open = True
+                page.update()
+                return
             
             
             dialog = ft.AlertDialog(
@@ -150,6 +168,7 @@ def main(page: ft.Page):
             # Belum handle ketika orang bernama sama => username sama => tidak bisa diinput karena username harus unik
 
             page.dialog = dialog
+            page.overlay.append(dialog)
             dialog.open = True
             page.update()
     

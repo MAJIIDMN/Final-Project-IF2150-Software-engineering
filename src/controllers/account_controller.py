@@ -35,12 +35,14 @@ class AccountController:
 
         # Realisasi Query Q-017 & Q-018 dari DPPL
         query = "INSERT INTO users (id, username, password, email, role, kecamatan) VALUES (?, ?, ?, ?, ?, ?)"
-        success = self.db.execute_query(query, (new_user.id, username, password, email, role, kecamatan))
+        success, message = self.db.execute_query(query, (new_user.id, username, password, email, role, kecamatan))
 
         if success:
             print(f"Registrasi berhasil! ID Anda: {new_user.id}")
+            return new_user, message
         else:
             print("Gagal: Username mungkin sudah terpakai.")
+            return None, None
 
     def login(self):
         print("\n--- LOGIN ---")
@@ -115,6 +117,17 @@ class AccountController:
         username = f'{first}{last}'.lower()
         new_user = User(username, password, email, phonenumber, kecamatan)
         query = "INSERT INTO users (id, username, password, email, phonenumber, role, kecamatan) VALUES (?, ?, ?, ?, ?, ?, ?)"
-        success = self.db.execute_query(query, (new_user.id, username, password, email, phonenumber, role, kecamatan))
+        success, message = self.db.execute_query(query, (new_user.id, username, password, email, phonenumber, role, kecamatan))
 
-        return success
+        return success, message
+    
+    def login_user(self, email, password):
+        query = "SELECT id, username, password, email, phonenumber, role, kecamatan FROM users WHERE username = ? AND password = ?"
+        row = self.db.fetch_one(query, (email, password))
+
+        if row:
+            self.current_user = User(row[1], row[2], row[3], row[5], row[4], row[6], row[0])
+            self.is_logged_in = True
+            return self.current_user
+        else:
+            return None

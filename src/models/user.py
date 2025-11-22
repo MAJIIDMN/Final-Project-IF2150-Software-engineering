@@ -4,22 +4,17 @@ import services.database
 
 class User:
     def __init__(self, username, password, email, phonenumber, kecamatan, role="client", point=0, uid=None):
+        global usercounter
         if uid is not None:
         # Kalau berasal dari database pakai id lama
             self.id = uid
         else: # kalau tidak ada, register
-            if role == "client":
+            if role == "client" or role == "wc":
                 services.database.usercounter += 1
                 if (services.database.usercounter > 10**6 -1):
                     print("User penuh!")
                     return
-                self.id = f"C{services.database.usercounter:05d}"
-            elif role == "wc":
-                services.database.wccounter += 1
-                if (services.database.wccounter > 10**6 -1):
-                    print("Waste Collector penuh!")
-                    return
-                self.id = f"W{services.database.wccounter:05d}"
+                self.id = f"U{services.database.usercounter:05d}"
             else:
                 print("Role tidak sesuai!")
                 return
