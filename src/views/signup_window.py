@@ -11,6 +11,8 @@ fonts = {
 acc = AccountController()  
 
 def main(page: ft.Page):
+    from controllers.account_controller import AccountController
+    app = AccountController()
     page.title = "GrowBak - Sign Up"
     page.window_width = 1440
     page.window_height = 1024
@@ -91,6 +93,9 @@ def main(page: ft.Page):
         if not phone.current.value:
             phone.current.error_text = "Phone number harus diisi"
             is_valid = False
+        elif (len(phone.current.value) < 10 or len(phone.current.value) > 13):
+            phone.current.error_text = "Nomor telepon tidak valid"
+            is_valid = False
             
         if not address.current.value:
             address.current.error_text = "Address harus diisi"
@@ -118,6 +123,15 @@ def main(page: ft.Page):
 
 
         if is_valid:
+            app.register_user(
+                first_name.current.value,
+                last_name.current.value,
+                email.current.value,
+                phone.current.value,
+                address.current.value,
+                password.current.value,
+                role="client"
+            )
             # Tampilkan dialog sukses
             def close_dialog(e):
                 dialog.open = False
@@ -145,6 +159,7 @@ def main(page: ft.Page):
                 page.update()
                 return
             
+            
             dialog = ft.AlertDialog(
                 title=ft.Text("Berhasil!"),
                 content=ft.Text("Account berhasil dibuat!"),
@@ -152,6 +167,8 @@ def main(page: ft.Page):
                     ft.TextButton("OK", on_click=close_dialog)
                 ]
             )
+            # Belum handle ketika orang bernama sama => username sama => tidak bisa diinput karena username harus unik
+
             page.dialog = dialog
             dialog.open = True
             page.update()

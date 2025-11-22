@@ -1,20 +1,46 @@
 import uuid
 
+import services.database
+
 class User:
-    def __init__(self, username, password, email, kecamatan, role="client", uid=None, point=0):
-        self.id = uid if uid else str(uuid.uuid4())[:8]
+    def __init__(self, username, password, email, phonenumber, kecamatan, role="client", point=0, uid=None):
+        if uid is not None:
+        # Kalau berasal dari database pakai id lama
+            self.id = uid
+        else: # kalau tidak ada, register
+            if role == "client":
+                services.database.usercounter += 1
+                if (services.database.usercounter > 10**6 -1):
+                    print("User penuh!")
+                    return
+                self.id = f"C{services.database.usercounter:05d}"
+            elif role == "wc":
+                services.database.wccounter += 1
+                if (services.database.wccounter > 10**6 -1):
+                    print("Waste Collector penuh!")
+                    return
+                self.id = f"W{services.database.wccounter:05d}"
+            else:
+                print("Role tidak sesuai!")
+                return
         self.username = username
         self.password = password
         self.email = email
+        self.phonenumber = phonenumber
         self.role = role
         self.point = point
         self.kecamatan = kecamatan
 
 class Order:
     def __init__(self, owner: User, jenis, berat, foto, oid=None, status="Pending", wc_id=None):
-        self.id = oid if oid else str(uuid.uuid4())[:8]
+        services.database.ocounter += 1
+        if (services.database.ocounter > 10**6 -1):
+            print("Order penuh!")
+            return
+        else:
+            self.id = f"O{services.database.ocounter:05d}"
         self.owner_id = owner.id
-        self.kecamatan = owner.kecamatan   # <<< ambil dari user
+        self.kecamatan = owner.kecamatan 
         self.jenis = jenis
         self.berat = berat
         self.foto = foto

@@ -1,30 +1,59 @@
 import sqlite3
 import pandas as pd
+import threading
+
+usercounter = 0
+wccounter = 0
+ocounter = 0
 
 class DatabaseService:
     def __init__(self, db_name="src/database/growbak.db"):
         self.conn = sqlite3.connect(db_name, check_same_thread=False)
         self.cursor = self.conn.cursor()
+        self.lock = threading.Lock()
         self.create_tables()
+        queryC = "SELECT id FROM users WHERE id LIKE 'C%' ORDER BY id DESC LIMIT 1"
+        queryW = "SELECT id FROM users WHERE id LIKE 'W%' ORDER BY id DESC LIMIT 1"
+        queryO = "SELECT id FROM orders WHERE id LIKE 'O%' ORDER BY id DESC LIMIT 1"
+        rowC = self.fetch_one(queryC)
+        rowW = self.fetch_one(queryW)
+        rowO = self.fetch_one(queryO)
+        global usercounter
+        global wccounter
+        global ocounter
+        if (rowC is None):
+            usercounter = 0
+        else: 
+            last_id = rowC[0]
+            usercounter = int(last_id[2:])
+        if (rowW is None):
+            wccounter = 0
+        else:
+            last_id = rowW[0]
+            wccounter = int(last_id[2:])
+        if (rowO is None):
+            ocounter = 0
+        else:
+            last_id = rowO[0]
+            ocounter = int(last_id[2:])
 
     def create_tables(self):
-        """Membuat tabel jika belum ada (DDL)."""
-        # Tabel Users (Menggabungkan Client, WC, Admin dengan kolom 'role')
-        # Merealisasikan penyimpanan untuk User Management [DPPL 2.3]
+        # Membuat tabel-tabel jika belum ada
+        # Tabel users
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id TEXT PRIMARY KEY,
                 username TEXT UNIQUE,
                 password TEXT,
                 email TEXT,
+                phonenumber TEXT,
                 role TEXT, -- 'client', 'wc', 'admin'
                 point INTEGER DEFAULT 0,
                 kecamatan TEXT
             )
         """)
 
-        # Tabel Orders (Sampah)
-        # Merealisasikan penyimpanan data sampah [DPPL Q-013, Q-014]
+        # Tabel Orders
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS orders (
                 id TEXT PRIMARY KEY,
@@ -40,18 +69,19 @@ class DatabaseService:
             )
         """)
 
-        # # Data untuk kecamatan
-        # self.cursor.execute("""
-        #     CREATE TABLE kecamatan (
-        #         id INTEGER PRIMARY KEY,
-        #         nama TEXT,
-        #         latitude REAL,
-        #         longitude REAL,
-        #         norm_latitude REAL,
-        #         norm_longitude REAL
-        #     )
-        # """)
+        # Tabel Data Kecamatan
+        self.cursor.execute("""
+            CREATE TABLE IF NOT EXISTS kecamatan (
+                id INTEGER PRIMARY KEY,
+                nama TEXT,
+                latitude REAL,
+                longitude REAL,
+                norm_latitude REAL,
+                norm_longitude REAL
+            )
+        """)
 
+        # Tabel Hadiah
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS hadiah (
                 id TEXT PRIMARY KEY,
@@ -64,17 +94,22 @@ class DatabaseService:
             )
         """)
 
+        # Update ke database
         self.conn.commit()
 
     def execute_query(self, query, params=()):
-        """Menjalankan query INSERT/UPDATE/DELETE."""
+        # Menjalankan query
         try:
-            self.cursor.execute(query, params)
-            self.conn.commit()
-            return True
+            with self.lock:
+                self.cursor.execute(query, params)
+                self.conn.commit()
+                return True
         except sqlite3.IntegrityError as e:
-            print(f"Database Error: {e}")
-            return False
+            if "UNIQUE constraint failed: users.username" in str(e):
+                return False, "Username sudah dipakai!"
+            if "UNIQUE constraint failed: users.id" in str(e):
+                return False, "ID sudah ada di database!"
+            return False, "Terjadi kesalahan database."
 
     def fetch_one(self, query, params=()):
         """Mengambil satu baris data (untuk Login)."""

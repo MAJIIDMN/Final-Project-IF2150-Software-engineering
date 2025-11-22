@@ -23,7 +23,7 @@ class AccountController:
         kecamatan = "default_kecamatan"
 
         # Membuat objek user sementara
-        new_user = User(username, password, email, role, kecamatan)
+        new_user = User(username, password, email, kecamatan, role)
 
         # Realisasi Query Q-017 & Q-018 dari DPPL
         query = "INSERT INTO users (id, username, password, email, role, kecamatan) VALUES (?, ?, ?, ?, ?, ?)"
@@ -40,12 +40,12 @@ class AccountController:
     def login(self, email, password):
 
         # Realisasi Query Q-019, Q-020 dari DPPL
-        query = "SELECT id, username, password, email, role, point, kecamatan FROM users WHERE email = ? AND password = ?"
+        query = "SELECT id, username, password, email, role, kecamatan, point FROM users WHERE username = ? AND password = ?"
         row = self.db.fetch_one(query, (email, password))
 
         if row:
-            # User(username, password, email, kecamatan, role, uid, point)
-            self.current_user = User(row[1], row[2], row[3], row[6], row[4], row[0], row[5])
+            # row = (id, username, password, email, role, point)
+            self.current_user = User(row[1], row[2], row[3], row[5], row[4], row[6], row[0])
             self.is_logged_in = True
             return self.current_user
         else:
@@ -71,7 +71,7 @@ class AccountController:
             print("Titik asal tidak dikenal, lewati perhitungan titik terdekat.")
         foto = "foto_dummy.jpg"
 
-        new_order = Order(self.current_user.id, jenis, berat, foto)
+        new_order = Order(self.current_user, jenis, berat, foto)
 
         # Realisasi Query Q-013 (Insert/Update Sampah)
         query = "INSERT INTO orders (id, owner_id, jenis, berat, foto_path, status) VALUES (?, ?, ?, ?, ?, ?)"
@@ -99,3 +99,14 @@ class AccountController:
         self.current_user = None
         self.is_logged_in = False
         print("Logout berhasil.")
+
+
+    # Integrasi ke Front-End
+
+    def register_user(self, first, last, email, phonenumber, kecamatan, password, role="client"):
+        username = f'{first}{last}'.lower()
+        new_user = User(username, password, email, phonenumber, kecamatan)
+        query = "INSERT INTO users (id, username, password, email, phonenumber, role, kecamatan) VALUES (?, ?, ?, ?, ?, ?, ?)"
+        success = self.db.execute_query(query, (new_user.id, username, password, email, phonenumber, role, kecamatan))
+
+        return success
