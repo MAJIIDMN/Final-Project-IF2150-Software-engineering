@@ -15,20 +15,12 @@ class AccountController:
         self.current_user = None
         self.is_logged_in = False
 
-    def register(self):
+    def register(self, first_name, last_name, email, phone, address, password):
         print("\n--- REGISTER ---")
-        tipe_map = {'1': 'client', '2': 'wc'}
-        choice = input("Daftar sebagai (1: Client, 2: Waste Collector): ")
-        
-        if choice not in tipe_map:
-            print("Pilihan tidak valid.")
-            return
 
-        role = tipe_map[choice]
-        username = input("Username: ")
-        email = input("Email: ")
-        password = input("Password: ")
-        kecamatan = input("Kecamatan: ")
+        role = 'client'
+        username = f"{first_name}_{last_name}".lower()
+        kecamatan = "default_kecamatan"
 
         # Membuat objek user sementara
         new_user = User(username, password, email, kecamatan, role)
@@ -39,25 +31,25 @@ class AccountController:
 
         if success:
             print(f"Registrasi berhasil! ID Anda: {new_user.id}")
+            return new_user
         else:
             print("Gagal: Username mungkin sudah terpakai.")
+            return None
 
-    def login(self):
-        print("\n--- LOGIN ---")
-        username = input("Username: ")
-        password = input("Password: ")
+
+    def login(self, email, password):
 
         # Realisasi Query Q-019, Q-020 dari DPPL
         query = "SELECT id, username, password, email, role, kecamatan, point FROM users WHERE username = ? AND password = ?"
-        row = self.db.fetch_one(query, (username, password))
+        row = self.db.fetch_one(query, (email, password))
 
         if row:
             # row = (id, username, password, email, role, point)
             self.current_user = User(row[1], row[2], row[3], row[5], row[4], row[6], row[0])
             self.is_logged_in = True
-            print(f"Login berhasil! Halo, {self.current_user.username} ({self.current_user.role})")
+            return self.current_user
         else:
-            print("Login gagal: Data tidak ditemukan di database.")
+            return None
 
     def _get_nearest_point(self, from_point):
         key = from_point.strip().lower()

@@ -1,3 +1,4 @@
-id,username,password,email,role,point,rating,kecamatan
-C00001,dummyuser,dummypw,dum@gmail.com,client,0,0,Cidadap
-W00001,dummywc,wcwcwc,wc@gmail.com,wc,0,0,Sukasari
+id,username,password,email,role,point,kecamatan
+U001,majiid,admin123,majiid@example.com,client,100,'Cicendo'
+U002,admin,admin123,admin@example.com,admin,0,'Cicendo'
+U003,user123,admin123,user123@example.com,client,50,'Cicendo'
