@@ -18,7 +18,7 @@ def main(page: ft.Page):
     page.window_height = 1024
     page.padding = 0
     page.bgcolor = "#ffffff"
-    page.scroll = ft.ScrollMode.AUTO
+    page.scroll = None
     
     page.fonts = fonts
     page.theme = ft.Theme(font_family="Poppins")
