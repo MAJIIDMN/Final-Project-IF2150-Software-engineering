@@ -1,5 +1,8 @@
 import flet as ft
 from views.navbar import create_navbar
+from models.PointMart import PointMart
+
+point_mart = PointMart()
 
 fonts = {
     "Poppins": "fonts/poppins/Poppins-Regular.ttf",
@@ -73,6 +76,7 @@ def main(page: ft.Page, product_data=None):
         page.update()
 
     # Redeem button
+
     def on_redeem(e):
         if not selected_size.current:
             # Show error dialog
@@ -85,6 +89,7 @@ def main(page: ft.Page, product_data=None):
             dialog.open = True
             page.update()
         else:
+
             dialog = ft.AlertDialog(
                 title=ft.Text("Berhasil!"),
                 content=ft.Text("Produk berhasil ditukarkan!"),

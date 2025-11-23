@@ -52,22 +52,22 @@ def main(page: ft.Page):
     def sort_by_point(e, reverse: bool, hadiah: list):
         products_grid.controls.clear()
         if reverse == True:
-            sorted_products = point_mart.sort_by_points_down(hadiah)
+            hadiah = point_mart.sort_by_points_down(hadiah)
         else:
-            sorted_products = point_mart.sort_by_points_up(hadiah)
+            hadiah = point_mart.sort_by_points_up(hadiah)
         
-        for product in sorted_products:
+        for product in hadiah:
             products_grid.controls.append(product_card(product))
         page.update()
 
     def sort_by_stock(e, reverse: bool, hadiah: list):
         products_grid.controls.clear()
         if reverse == True:
-            sorted_products = point_mart.sort_by_stock_down(hadiah)
+            hadiah = point_mart.sort_by_stock_down(hadiah)
         else:
-            sorted_products = point_mart.sort_by_stock_up(hadiah)
+            hadiah = point_mart.sort_by_stock_up(hadiah)
         
-        for product in sorted_products:
+        for product in hadiah:
             products_grid.controls.append(product_card(product))
         page.update()
 
@@ -96,7 +96,7 @@ def main(page: ft.Page):
                     ft.Container(
                         content=ft.Image(
                             src=product["image"],
-                            fit=ft.ImageFit.COVER,
+                            fit=ft.ImageFit.FILL,
                         ),
                         width=180,
                         height=200,
@@ -128,6 +128,7 @@ def main(page: ft.Page):
                     ),
                 ],
                 spacing=8,
+                tight=True,
             ),
             width=180,
             on_click=on_product_click,
@@ -136,7 +137,7 @@ def main(page: ft.Page):
     # Product grid
     products_grid = ft.GridView(
         runs_count=4,
-        spacing=20,
+        spacing=60,
         run_spacing=20,
         child_aspect_ratio=1,
         auto_scroll=False,

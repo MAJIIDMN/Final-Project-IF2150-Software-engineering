@@ -1,6 +1,14 @@
 import flet as ft
 
 def create_navbar(page):
+    def go_to_point_mart(e):
+        page.clean()
+        page.point_mart_main(page)
+    def go_to_home(e):
+        page.clean()
+        page.login_main(page)
+    def go_to_order(e):
+        print("Go to Order - Not Implemented Yet")
     navbar = ft.Container(
         content=ft.Row(
             [
@@ -14,9 +22,22 @@ def create_navbar(page):
                 ),
                 ft.Row(
                     [
-                        ft.TextButton("Home", style=ft.ButtonStyle(color="white")),
-                        ft.TextButton("Order", style=ft.ButtonStyle(color="white")),
-                        ft.TextButton("Point Mart", style=ft.ButtonStyle(color="white")),
+                        ft.TextButton(
+                            "Home", 
+                            style=ft.ButtonStyle(color="white"),
+                            on_click=go_to_home,
+                            ),
+                        ft.TextButton(
+                            "Order", 
+                            style=ft.ButtonStyle(color="white"),
+                            on_click=go_to_order,
+                            ),
+                        ft.TextButton(
+                            "Point Mart",
+                            style=ft.ButtonStyle(color="white"), 
+                            on_click=go_to_point_mart,
+                            )
+                            
                     ],
                     spacing=20,
                 ),

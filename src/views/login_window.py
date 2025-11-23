@@ -61,13 +61,13 @@ def main(page: ft.Page):
 
         # Validasi
         is_valid = True
+        use_email = True
         
         if not email.current.value:
             email.current.error_text = "Email harus diisi"
             is_valid = False
         elif not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email.current.value):
-            email.current.error_text = "Format email tidak valid"
-            is_valid = False
+            use_email = False
             
         if not password.current.value:
             password.current.error_text = "Password harus diisi"
@@ -77,8 +77,11 @@ def main(page: ft.Page):
 
         if not is_valid:
             return
-
-        user = acc.login(email.current.value, password.current.value)
+    
+        if use_email:
+            user = acc.login(None, email.current.value, password.current.value)
+        else:
+            user = acc.login(email.current.value, None, password.current.value)
 
         #jujur harusnya dah nyambung sama backend 
         #tapi gatau kenapa nih dialog gagal sama berhasilnya gamau keluar

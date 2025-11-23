@@ -48,3 +48,19 @@ class PointMart(PointMartdb):
         all_hadiah = self.load_hadiah()
         filtered_hadiah = [hadiah for hadiah in all_hadiah if keyword.lower() in hadiah['name'].lower() or keyword.lower() in hadiah['category'].lower()]
         return filtered_hadiah
+    
+    def redeem_hadiah(self, user: User, hadiah_id: str, list_hadiah: list):
+        for hadiah in list_hadiah:
+            if hadiah['id'] == hadiah_id:
+                if user.point >= hadiah['points'] and hadiah['stock'] > 0:
+                    # Kurangi poin user
+                    user.point -= hadiah['points']
+                    # Kurangi stock hadiah
+                    hadiah['stock'] -= 1
+                    # Update database
+                    db_service.execute_query("UPDATE users SET point = ? WHERE id = ?", (user.point, user.id))
+                    db_service.execute_query("UPDATE hadiah SET stock = ? WHERE id = ?", (hadiah['stock'], hadiah_id))
+                    return print("Redeem berhasil!")
+                else:
+                    return print("Redeem gagal: Poin tidak cukup atau stock habis.")
+        return False

@@ -37,11 +37,14 @@ class AccountController:
             return None, None
 
 
-    def login(self, email, password):
+    def login(self, username, email, password):
 
-        # Realisasi Query Q-019, Q-020 dari DPPL
-        query = "SELECT id, username, password, email, role, kecamatan, point FROM users WHERE email = ? AND password = ?"
-        row = self.db.fetch_one(query, (email, password))
+        if username is not None:
+            query = "SELECT id, username, password, email, role, kecamatan, point FROM users WHERE username = ? AND password = ?"
+            row = self.db.fetch_one(query, (username, password))
+        else:
+            query = "SELECT id, username, password, email, role, kecamatan, point FROM users WHERE email = ? AND password = ?"
+            row = self.db.fetch_one(query, (email, password))
 
         if row:
             # row = (id, username, password, email, role, point)
