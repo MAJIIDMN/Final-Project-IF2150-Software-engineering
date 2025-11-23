@@ -31,3 +31,20 @@ class PointMart(PointMartdb):
             hadiah.append({"id": item[0], "name": item[1], "points": item[2], "stock": item[4], "image": item[3], "description": item[5], "category": item[6], "colors": color_list, "sizes": size_list})
         
         return hadiah
+    
+    def sort_by_points_up(self, hadiah_list):
+        return sorted(hadiah_list, key=lambda x: x['points'])
+    
+    def sort_by_points_down(self, hadiah_list):
+        return sorted(hadiah_list, key=lambda x: x['points'], reverse=True)
+    
+    def sort_by_stock_up(self, hadiah_list):
+        return sorted(hadiah_list, key=lambda x: x['stock'])
+    
+    def sort_by_stock_down(self, hadiah_list):
+        return sorted(hadiah_list, key=lambda x: x['stock'], reverse=True)
+    
+    def search_hadiah(self, keyword):
+        all_hadiah = self.load_hadiah()
+        filtered_hadiah = [hadiah for hadiah in all_hadiah if keyword.lower() in hadiah['name'].lower() or keyword.lower() in hadiah['category'].lower()]
+        return filtered_hadiah

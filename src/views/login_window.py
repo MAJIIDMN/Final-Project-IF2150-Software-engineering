@@ -77,10 +77,6 @@ def main(page: ft.Page):
 
         if not is_valid:
             return
-        
-        def close_dialog(e):
-            dialog.open = False
-            page.update()
 
         user = acc.login(email.current.value, password.current.value)
 
@@ -90,25 +86,25 @@ def main(page: ft.Page):
 
         if user is None:
             # Login gagal
-            dialog = ft.AlertDialog(
-                title=ft.Text("Gagal!"),
-                content=ft.Text("Email atau password salah"),
-                actions=[ft.TextButton("OK", on_click=close_dialog)],
-            )
-            page.dialog = dialog
-            dialog.open = True
-            page.update()
+            # dialog = ft.AlertDialog(
+            #     title=ft.Text("Gagal!"),
+            #     content=ft.Text("Email atau password salah"),
+            #     actions=[ft.TextButton("OK", on_click=close_dialog)],
+            # )
+            # page.dialog = dialog
+            # dialog.open = True
+            # page.update()
             return
-        
+        page.clean()        
         go_to_point_mart(None)
-        dialog = ft.AlertDialog(
-            title=ft.Text("Berhasil!"),
-            content=ft.Text(f"Selamat datang, {user.username}!"),
-            actions=[ft.TextButton("OK", on_click=close_dialog)],
-        )
-        page.dialog = dialog
-        dialog.open = True
-        page.update()
+        # dialog = ft.AlertDialog(
+        #     title=ft.Text("Berhasil!"),
+        #     content=ft.Text(f"Selamat datang, {user.username}!"),
+        #     actions=[ft.TextButton("OK", on_click=close_dialog)],
+        # )
+        # page.dialog = dialog
+        # dialog.open = True
+        # page.update()
         # page.point_mart_main(page)
 
     # Fungsi navigasi ke Sign Up

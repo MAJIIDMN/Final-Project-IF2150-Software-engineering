@@ -40,7 +40,7 @@ class AccountController:
     def login(self, email, password):
 
         # Realisasi Query Q-019, Q-020 dari DPPL
-        query = "SELECT id, username, password, email, role, kecamatan, point FROM users WHERE username = ? AND password = ?"
+        query = "SELECT id, username, password, email, role, kecamatan, point FROM users WHERE email = ? AND password = ?"
         row = self.db.fetch_one(query, (email, password))
 
         if row:
