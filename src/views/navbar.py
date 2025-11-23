@@ -1,6 +1,20 @@
 import flet as ft
+from models.state import AppState
+from controllers.account_controller import AccountController
+
+app_state = AppState()
+acc_controller = AccountController()
 
 def create_navbar(page):
+    point = acc_controller.get_point(app_state.username)
+    def go_to_point_mart(e):
+        page.clean()
+        page.point_mart_main(page)
+    def go_to_home(e):
+        page.clean()
+        page.login_main(page)
+    def go_to_order(e):
+        print("Go to Order - Not Implemented Yet")
     navbar = ft.Container(
         content=ft.Row(
             [
@@ -14,9 +28,22 @@ def create_navbar(page):
                 ),
                 ft.Row(
                     [
-                        ft.TextButton("Home", style=ft.ButtonStyle(color="white")),
-                        ft.TextButton("Order", style=ft.ButtonStyle(color="white")),
-                        ft.TextButton("Point Mart", style=ft.ButtonStyle(color="white")),
+                        ft.TextButton(
+                            "Home", 
+                            style=ft.ButtonStyle(color="white"),
+                            on_click=go_to_home,
+                            ),
+                        ft.TextButton(
+                            "Order", 
+                            style=ft.ButtonStyle(color="white"),
+                            on_click=go_to_order,
+                            ),
+                        ft.TextButton(
+                            "Point Mart",
+                            style=ft.ButtonStyle(color="white"), 
+                            on_click=go_to_point_mart,
+                            )
+                            
                     ],
                     spacing=20,
                 ),
@@ -25,7 +52,7 @@ def create_navbar(page):
                         ft.Row(
                             [
                                 ft.Icon(ft.Icons.STAR, color="white", size=20),
-                                ft.Text("999 Points", color="white", size=14),
+                                ft.Text(str(point), color="white", size=14),
                             ],
                             spacing=5,
                             vertical_alignment=ft.CrossAxisAlignment.CENTER,

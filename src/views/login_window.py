@@ -1,8 +1,11 @@
 import flet as ft
 import re
 from controllers.account_controller import AccountController
+from models.state import AppState
 
 acc = AccountController()
+state = AppState()
+state.load_state()
 
 fonts = {
     "Poppins": "fonts/poppins/Poppins-Regular.ttf",
@@ -61,13 +64,13 @@ def main(page: ft.Page):
 
         # Validasi
         is_valid = True
+        use_email = True
         
         if not email.current.value:
             email.current.error_text = "Email harus diisi"
             is_valid = False
         elif not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email.current.value):
-            email.current.error_text = "Format email tidak valid"
-            is_valid = False
+            use_email = False
             
         if not password.current.value:
             password.current.error_text = "Password harus diisi"
@@ -77,12 +80,11 @@ def main(page: ft.Page):
 
         if not is_valid:
             return
-        
-        def close_dialog(e):
-            dialog.open = False
-            page.update()
-
-        user = acc.login(email.current.value, password.current.value)
+    
+        if use_email:
+            user = acc.login(None, email.current.value, password.current.value)
+        else:
+            user = acc.login(email.current.value, None, password.current.value)
 
         #jujur harusnya dah nyambung sama backend 
         #tapi gatau kenapa nih dialog gagal sama berhasilnya gamau keluar
@@ -90,25 +92,26 @@ def main(page: ft.Page):
 
         if user is None:
             # Login gagal
-            dialog = ft.AlertDialog(
-                title=ft.Text("Gagal!"),
-                content=ft.Text("Email atau password salah"),
-                actions=[ft.TextButton("OK", on_click=close_dialog)],
-            )
-            page.dialog = dialog
-            dialog.open = True
-            page.update()
+            # dialog = ft.AlertDialog(
+            #     title=ft.Text("Gagal!"),
+            #     content=ft.Text("Email atau password salah"),
+            #     actions=[ft.TextButton("OK", on_click=close_dialog)],
+            # )
+            # page.dialog = dialog
+            # dialog.open = True
+            # page.update()
             return
-        
+        state.change_state(True, user.username, user.role)
+        page.clean()        
         go_to_point_mart(None)
-        dialog = ft.AlertDialog(
-            title=ft.Text("Berhasil!"),
-            content=ft.Text(f"Selamat datang, {user.username}!"),
-            actions=[ft.TextButton("OK", on_click=close_dialog)],
-        )
-        page.dialog = dialog
-        dialog.open = True
-        page.update()
+        # dialog = ft.AlertDialog(
+        #     title=ft.Text("Berhasil!"),
+        #     content=ft.Text(f"Selamat datang, {user.username}!"),
+        #     actions=[ft.TextButton("OK", on_click=close_dialog)],
+        # )
+        # page.dialog = dialog
+        # dialog.open = True
+        # page.update()
         # page.point_mart_main(page)
 
     # Fungsi navigasi ke Sign Up

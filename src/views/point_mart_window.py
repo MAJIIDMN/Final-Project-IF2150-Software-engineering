@@ -45,8 +45,41 @@ def main(page: ft.Page):
         field_ref.current.label_style = ft.TextStyle(color="#c2c2c2")
         page.update()
 
+
     # Dummy data
     products = point_mart.load_hadiah()
+
+    def sort_by_point(e, reverse: bool, hadiah: list):
+        products_grid.controls.clear()
+        if reverse == True:
+            hadiah = point_mart.sort_by_points_down(hadiah)
+        else:
+            hadiah = point_mart.sort_by_points_up(hadiah)
+        
+        for product in hadiah:
+            products_grid.controls.append(product_card(product))
+        page.update()
+
+    def sort_by_stock(e, reverse: bool, hadiah: list):
+        products_grid.controls.clear()
+        if reverse == True:
+            hadiah = point_mart.sort_by_stock_down(hadiah)
+        else:
+            hadiah = point_mart.sort_by_stock_up(hadiah)
+        
+        for product in hadiah:
+            products_grid.controls.append(product_card(product))
+        page.update()
+
+    def search(e, keyword: str):
+        products_grid.controls.clear()
+        searched_products = point_mart.search_hadiah(keyword)
+        for product in searched_products:
+            products_grid.controls.append(product_card(product))
+        page.update()
+    
+    def on_search_change(e):
+        search(e, search_input.current.value)
 
     # Top navigation bar
     top_nav = create_navbar(page)
@@ -63,7 +96,7 @@ def main(page: ft.Page):
                     ft.Container(
                         content=ft.Image(
                             src=product["image"],
-                            fit=ft.ImageFit.COVER,
+                            fit=ft.ImageFit.FILL,
                         ),
                         width=180,
                         height=200,
@@ -95,6 +128,7 @@ def main(page: ft.Page):
                     ),
                 ],
                 spacing=8,
+                tight=True,
             ),
             width=180,
             on_click=on_product_click,
@@ -103,7 +137,7 @@ def main(page: ft.Page):
     # Product grid
     products_grid = ft.GridView(
         runs_count=4,
-        spacing=20,
+        spacing=60,
         run_spacing=20,
         child_aspect_ratio=1,
         auto_scroll=False,
@@ -122,6 +156,7 @@ def main(page: ft.Page):
                 ft.ElevatedButton(
                     "Low to High Price",
                     width=float("inf"),
+                    on_click=lambda e: sort_by_point(e, False, products),
                     height=40,
                     bgcolor="#1e8c45",
                     color="white",
@@ -133,6 +168,7 @@ def main(page: ft.Page):
                 ft.ElevatedButton(
                     "High to Low Price",
                     width=float("inf"),
+                    on_click=lambda e: sort_by_point(e, True, products),
                     height=40,
                     bgcolor="#1e8c45",
                     color="white",
@@ -144,6 +180,7 @@ def main(page: ft.Page):
                 ft.ElevatedButton(
                     "Most to Least Stock",
                     width=float("inf"),
+                    on_click=lambda e: sort_by_stock(e, True, products),
                     height=40,
                     bgcolor="#1e8c45",
                     color="white",
@@ -155,6 +192,7 @@ def main(page: ft.Page):
                 ft.ElevatedButton(
                     "Least to Most Stock",
                     width=float("inf"),
+                    on_click=lambda e: sort_by_stock(e, False, products),
                     height=40,
                     bgcolor="#1e8c45",
                     color="white",
@@ -212,7 +250,8 @@ def main(page: ft.Page):
                 cursor_color="#000000",
                 label_style=ft.TextStyle(color="#c2c2c2"),
                 on_focus=lambda e: on_focus(e, search_input),
-                on_blur=lambda e: on_blur_label(e, search_input),
+                on_blur=lambda e: on_blur_label(e, search_input),\
+                on_change=on_search_change,
             ),
             
             ft.Container(height=20),

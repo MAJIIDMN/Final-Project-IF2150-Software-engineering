@@ -37,15 +37,27 @@ class AccountController:
             return None, None
 
 
-    def login(self, email, password):
+    def login(self, username, email, password):
 
-        # Realisasi Query Q-019, Q-020 dari DPPL
-        query = "SELECT id, username, password, email, role, kecamatan, point FROM users WHERE username = ? AND password = ?"
-        row = self.db.fetch_one(query, (email, password))
+        if username is not None:
+            query = "SELECT id, username, password, email, role, kecamatan, point FROM users WHERE username = ? AND password = ?"
+            row = self.db.fetch_one(query, (username, password))
+        else:
+            query = "SELECT id, username, password, email, role, kecamatan, point FROM users WHERE email = ? AND password = ?"
+            row = self.db.fetch_one(query, (email, password))
 
         if row:
-            # row = (id, username, password, email, role, point)
-            self.current_user = User(row[1], row[2], row[3], row[5], row[4], row[6], row[0])
+            # row = (id, username, password, email, role, kecamatan, point)
+            self.current_user = User(
+                username=row[1],
+                password=row[2],
+                email=row[3],
+                phonenumber="",
+                kecamatan=row[5],
+                role=row[4],
+                point=row[6],
+                uid=row[0]
+            )
             self.is_logged_in = True
             return self.current_user
         else:
@@ -100,6 +112,19 @@ class AccountController:
         self.is_logged_in = False
         print("Logout berhasil.")
 
+    def get_point(self, username:str):
+        if username is None:
+            return f"0"
+        query = "SELECT point FROM users WHERE username = ?"
+        row = self.db.fetch_one(query, (username,))
+        if row:
+            point = row[0]
+            if point is not None:
+                return point
+            return f"0"
+        else:
+            return None
+
 
     # Integrasi ke Front-End
 
@@ -110,14 +135,3 @@ class AccountController:
         success, message = self.db.execute_query(query, (new_user.id, username, password, email, phonenumber, role, kecamatan))
 
         return success, message
-    
-    def login_user(self, email, password):
-        query = "SELECT id, username, password, email, phonenumber, role, kecamatan FROM users WHERE username = ? AND password = ?"
-        row = self.db.fetch_one(query, (email, password))
-
-        if row:
-            self.current_user = User(row[1], row[2], row[3], row[5], row[4], row[6], row[0])
-            self.is_logged_in = True
-            return self.current_user
-        else:
-            return None
