@@ -1,8 +1,11 @@
 import flet as ft
 import re
 from controllers.account_controller import AccountController
+from models.state import AppState
 
 acc = AccountController()
+state = AppState()
+state.load_state()
 
 fonts = {
     "Poppins": "fonts/poppins/Poppins-Regular.ttf",
@@ -98,6 +101,7 @@ def main(page: ft.Page):
             # dialog.open = True
             # page.update()
             return
+        state.change_state(True, user.username, user.role)
         page.clean()        
         go_to_point_mart(None)
         # dialog = ft.AlertDialog(

@@ -1,6 +1,13 @@
 import flet as ft
+from models.state import AppState
+from controllers.account_controller import AccountController
+
+app_state = AppState()
+acc_controller = AccountController()
 
 def create_navbar(page):
+    point = acc_controller.get_point(app_state.username)
+    print(f"Navbar Point: {point}")
     def go_to_point_mart(e):
         page.clean()
         page.point_mart_main(page)
@@ -46,7 +53,7 @@ def create_navbar(page):
                         ft.Row(
                             [
                                 ft.Icon(ft.Icons.STAR, color="white", size=20),
-                                ft.Text("999 Points", color="white", size=14),
+                                ft.Text(str(point), color="white", size=14),
                             ],
                             spacing=5,
                             vertical_alignment=ft.CrossAxisAlignment.CENTER,
