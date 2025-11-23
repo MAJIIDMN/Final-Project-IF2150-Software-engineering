@@ -7,7 +7,6 @@ acc_controller = AccountController()
 
 def create_navbar(page):
     point = acc_controller.get_point(app_state.username)
-    print(f"Navbar Point: {point}")
     def go_to_point_mart(e):
         page.clean()
         page.point_mart_main(page)

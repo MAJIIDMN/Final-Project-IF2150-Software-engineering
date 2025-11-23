@@ -1,6 +1,7 @@
 import flet as ft
 from views.navbar import create_navbar
 from models.PointMart import PointMart
+from models.state import AppState
 
 point_mart = PointMart()
 
@@ -89,7 +90,9 @@ def main(page: ft.Page, product_data=None):
             dialog.open = True
             page.update()
         else:
-
+            point_mart.redeem_hadiah(AppState.username, product_data["id"], point_mart.load_hadiah())
+            page.clean()
+            page.product_detail_main(page, product_data)
             dialog = ft.AlertDialog(
                 title=ft.Text("Berhasil!"),
                 content=ft.Text("Produk berhasil ditukarkan!"),

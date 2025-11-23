@@ -111,6 +111,18 @@ class DatabaseService:
         self.cursor.execute(query)
         return self.cursor.fetchall()
     
+    def update_point(self, username: str, new_point: int):
+        """Memperbarui poin user."""
+        query = "UPDATE users SET point = ? WHERE username = ?"
+        self.cursor.execute(query, (new_point, username))
+        self.conn.commit()
+
+    def update_stock_hadiah(self, hadiah_id: str, new_stock: int):
+        """Memperbarui stock hadiah."""
+        query = "UPDATE hadiah SET stock = ? WHERE id = ?"
+        self.cursor.execute(query, (new_stock, hadiah_id))
+        self.conn.commit()
+    
     def insert_from_csv(self, table: str, file_path: str):
         """Memasukkan data dari file CSV ke tabel tertentu."""
         df = pd.read_csv(file_path)
@@ -158,6 +170,13 @@ class DatabaseService:
         params = [data[col] for col in data.keys() if col != primary_key] + [data[primary_key]]
         self.cursor.execute(query, params)
         self.conn.commit()
+
+    def eksport_to_csv(self, table: str):
+        """Mengekspor data dari tabel ke file CSV."""
+        query = f"SELECT * FROM {table}"
+        file_path = f"src/database/file/{table}_export.csv"
+        df = pd.read_sql_query(query, self.conn)
+        df.to_csv(file_path, index=False)
 
     def close(self):
         self.conn.close()
