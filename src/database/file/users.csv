@@ -1,4 +1,3 @@
-id,username,password,email,role,point,kecamatan
-U001,majiid,admin123,majiid@example.com,client,100,'Cicendo'
-U002,admin,admin123,admin@example.com,admin,0,'Cicendo'
-U003,user123,admin123,user123@example.com,client,50,'Cicendo'
+id,username,password,email,phonenumber,role,point,kecamatan
+U00001,ray_wen,password,tin@gmail.com,089876543210,client,0,default_kecamatan
+U00002,owenowen,wordword,owen@gmail.com,080337133710,client,0,Sukagalih
