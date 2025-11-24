@@ -1,7 +1,6 @@
 import flet as ft
 
 def create_header(page):
-    """Create the green header with navigation"""
     return ft.Container(
         content=ft.Row(
             controls=[
