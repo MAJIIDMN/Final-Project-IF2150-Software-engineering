@@ -89,8 +89,6 @@ def main(page: ft.Page):
             def close_dialog(e):
                 dialog.open = False
                 page.update()
-                page.clean()
-                page.login_main(page)
 
             if success:
                 dialog = ft.AlertDialog(
@@ -108,6 +106,8 @@ def main(page: ft.Page):
             page.dialog = dialog
             dialog.open = True
             page.update()
+            page.clean()
+            page.login_main(page)
 
     # Right side - Image
     right_side = ft.Container(

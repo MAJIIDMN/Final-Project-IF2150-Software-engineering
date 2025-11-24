@@ -35,14 +35,14 @@ def main(page: ft.Page):
         if not verify_code.current:
             return False
         
-        code = verify_code.current.value or ""
+        code = verify_code.current.value
 
         if code and len(code) < 6:
             verify_code.current.error_text = "Kode harus minimal 6 karakter"
             on_blur_label(e, verify_code)
             return False
         
-        if ac.correct_vcode(code, 0):
+        if ac.correct_vcode(code):
             verify_code.current.error_text = None
             on_blur_label(e, verify_code)
             return True

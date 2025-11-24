@@ -133,7 +133,7 @@ class AccountController:
 
         return success, message
     
-    def correct_vcode(self, code_input, verif_code):
+    def correct_vcode(self, code_input):
         verif_code = "135182"
         if (code_input == verif_code):
             return True
