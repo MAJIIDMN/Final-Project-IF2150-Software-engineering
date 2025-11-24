@@ -1,5 +1,8 @@
 import flet as ft
 import re
+from controllers.account_controller import AccountController
+ac = AccountController()
+
 
 fonts = {
     "Poppins": "fonts/poppins/Poppins-Regular.ttf",
@@ -29,11 +32,24 @@ def main(page: ft.Page):
 
     # Fungsi untuk memvalidasi kode. Jangan lupa tambahkan kode OTP yang seharusnya di sini
     def validate_code(e):
-        if verify_code.current.value and len(verify_code.current.value) < 6:
+        if not verify_code.current:
+            return False
+        
+        code = verify_code.current.value or ""
+
+        if code and len(code) < 6:
             verify_code.current.error_text = "Kode harus minimal 6 karakter"
-        else:
+            on_blur_label(e, verify_code)
+            return False
+        
+        if ac.correct_vcode(code, 0):
             verify_code.current.error_text = None
-        on_blur_label(e, verify_code)
+            on_blur_label(e, verify_code)
+            return True
+        else:
+            verify_code.current.error_text = "Kode Anda salah!"
+            on_blur_label(e, verify_code)
+            return False
 
     # Back to login
     def go_to_login(e):
@@ -52,11 +68,11 @@ def main(page: ft.Page):
             verify_code.current.error_text = "Kode verifikasi tidak valid"
             is_valid = False
 
-        page.update()
-
         if is_valid:
-            page.clean()
-            page.reset_password_main(page)
+            if validate_code(e):
+                page.update()
+                page.clean()
+                page.reset_password_main(page)
 
     # Right side - Image
     right_side = ft.Container(

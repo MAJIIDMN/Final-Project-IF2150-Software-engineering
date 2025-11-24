@@ -125,13 +125,46 @@ class AccountController:
         else:
             return None
 
-
-    # Integrasi ke Front-End
-
     def register_user(self, first, last, email, phonenumber, kecamatan, password, role="client"):
         username = f'{first}{last}'.lower()
         new_user = User(username, password, email, phonenumber, kecamatan)
         query = "INSERT INTO users (id, username, password, email, phonenumber, role, kecamatan) VALUES (?, ?, ?, ?, ?, ?, ?)"
         success, message = self.db.execute_query(query, (new_user.id, username, password, email, phonenumber, role, kecamatan))
 
+        return success, message
+    
+    def correct_vcode(self, code_input, verif_code):
+        verif_code = "135182"
+        if (code_input == verif_code):
+            return True
+        else:
+            return False
+        
+
+    def find_user_with_email(self, email):
+        query = "SELECT * FROM users WHERE email = ?"
+        row = self.db.fetch_one(query, (email,))
+        uid, username, password, mail, phone, kecamatan, role, point = row
+        return User(
+            username=username,
+            password=password,
+            email=mail,
+            phonenumber=phone,
+            kecamatan=kecamatan,
+            role=role,
+            point=point,
+            uid=uid,  # penting karena user dari database
+        )
+    
+    def find_email_of_user(self, username):
+        query = "SELECT email FROM users WHERE username = ?"
+        row = self.db.fetch_one(query, (username,))
+        
+        if row:
+            return row[0]   # email
+        return None
+            
+    def change_password(self, new_pass, email):
+        query = "UPDATE users SET password = ? WHERE email = ?"
+        success, message = self.db.execute_query(query, (new_pass, email))
         return success, message

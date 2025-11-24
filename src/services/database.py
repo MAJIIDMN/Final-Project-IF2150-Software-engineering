@@ -85,7 +85,7 @@ class DatabaseService:
             with self.lock:
                 self.cursor.execute(query, params)
                 self.conn.commit()
-                return True
+                return True, None
         except sqlite3.IntegrityError as e:
             if "UNIQUE constraint failed: users.username" in str(e):
                 return False, "Username sudah dipakai!"

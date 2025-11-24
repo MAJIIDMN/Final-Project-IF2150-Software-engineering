@@ -1,6 +1,14 @@
 import flet as ft
 import re
 
+from controllers.account_controller import AccountController
+ac = AccountController()
+
+
+from models.state import AppState
+state = AppState()
+state.load_state()
+
 fonts = {
     "Poppins": "fonts/poppins/Poppins-Regular.ttf",
     "PoppinsBold": "fonts/poppins/Poppins-Bold.ttf",
@@ -34,7 +42,19 @@ def main(page: ft.Page):
             email.current.error_text = "Format email tidak valid"
         else:
             email.current.error_text = None
+        user = ac.find_user_with_email(email.current.value)
+        if user is None:
+            message = "email ini tidak terdaftar!"
+        else:
+            message = None
+        email.current.error_text = message    
         on_blur_label(e, email)
+        page.update()
+        if (message is None):
+            return True
+        else:
+            return False
+        
 
     # Back to login
     def go_to_login(e):
@@ -54,10 +74,12 @@ def main(page: ft.Page):
             is_valid = False
 
         page.update()
-
-        if is_valid:
-            page.clean()
-            page.forget_password_verify_main(page)
+        if validate_email(e) is True:
+            if is_valid:
+                user = ac.find_user_with_email(email.current.value)
+                state.change_state(True, user.username, user.role)
+                page.clean()
+                page.forget_password_verify_main(page)
 
     # Right side - Image
     right_side = ft.Container(
