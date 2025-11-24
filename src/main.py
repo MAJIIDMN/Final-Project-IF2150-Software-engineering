@@ -1,59 +1,55 @@
-# from PyQt5.QtWidgets import QApplication
-# import sys
+# main
 
-# from views.example_view import ExampleWindow
+import flet as ft
+from views.order.general_details import GeneralDetailsView
+from views.order.address import AddressView
+from views.order.navigation import NavigationView
+from views.order.date_and_time import DateAndTimeView
 
-# def main():
-#     app = QApplication(sys.argv)
+# Initialize OrderState
+class OrderState:
+    def __init__(self):
+        self.waste_types = []
+        self.weight = ""
+        self.condition = "Good"
+        self.attachment = None
+        self.district = ""
+        self.address = ""
+        self.notify_on_arrival = False
+        self.selected_date = None
+        self.selected_time = None
+        self.selected_collector = None
+        self.completed_steps = set()
+
+def main(page: ft.Page):
+    page.title = "GrowBak"
+    page.window_width = 1440
+    page.window_height = 1024
+    page.padding = 0
     
-#     window = ExampleWindow()
-#     window.show()
+    order_state = OrderState()
+    content_area = ft.Container(expand=True)
     
-#     sys.exit(app.exec_())
-
-# if __name__ == "__main__":
-#     main()
-
-from controllers.account_controller import AccountController
-
-def main():
-    app = AccountController()
-    running = True
-
-    while running:
-        print("\n================ GROWBAK ================")
+    def navigate_to(route):
+        content_area.content = None
         
-        if not app.is_logged_in:
-            print("1. Login\n2. Register\n3. Quit")
-            choice = input("Pilih: ")
-
-            if choice == '1': app.login()
-            elif choice == '2': app.register()
-            elif choice == '3': 
-                running = False
-                app.db.close() # Tutup koneksi DB
-                print("Aplikasi ditutup.")
-            else: print("Input salah.")
+        if route == "/order/general-details":
+            content_area.content = GeneralDetailsView(page, order_state)
+        elif route == "/order/address":
+            content_area.content = AddressView(page, order_state)
+        elif route == "/order/date-and-time":
+            content_area.content = DateAndTimeView(page, order_state)
+        elif route == "/order/navigation":
+            content_area.content = NavigationView(page, order_state)
         
-        else:
-            role = app.current_user.role
-            print(f"Menu User: {role.upper()}")
-            
-            if role == 'client':
-                print("1. Pesan Layanan\n2. Logout")
-                if input("Pilih: ") == '1':
-                    app.create_order()
-                else:
-                    app.logout()
-            
-            elif role == 'wc':
-                print("1. Cek Pesanan Masuk\n2. Logout")
-                if input("Pilih: ") == '1':
-                    app.get_pending_orders()
-                else:
-                    app.logout()
-            else:
-                app.logout()
+        page.update()
+    
+    def route_change(route):
+        navigate_to(page.route)
+    
+    page.on_route_change = route_change
+    page.add(content_area)
+    page.go("/order/general-details")
 
 if __name__ == "__main__":
-    main()
+    ft.app(target=main)
