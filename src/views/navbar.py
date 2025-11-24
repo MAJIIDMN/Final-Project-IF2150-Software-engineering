@@ -12,9 +12,10 @@ def create_navbar(page):
         page.point_mart_main(page)
     def go_to_home(e):
         page.clean()
-        page.login_main(page)
+        page.home_main(page) # Nanti diubah ke home
     def go_to_order(e):
-        print("Go to Order - Not Implemented Yet")
+        page.clean()
+        page.order_main(page)
     navbar = ft.Container(
         content=ft.Row(
             [
