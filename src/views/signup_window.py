@@ -115,7 +115,7 @@ def main(page: ft.Page):
         
         page.update()
 
-        newUser = acc.register(first_name.current.value, last_name.current.value, email.current.value, phone.current.value, address.current.value, password.current.value)
+        # newUser = acc.register(first_name.current.value, last_name.current.value, email.current.value, phone.current.value, address.current.value, password.current.value)
         
         #nih kasusnya sama kyk login sih wkwkwk
 
@@ -173,6 +173,8 @@ def main(page: ft.Page):
             page.overlay.append(dialog)
             dialog.open = True
             page.update()
+            page.clean()
+            page.point_mart_main(page)
     
     # Left side - Image
     left_side = ft.Container(

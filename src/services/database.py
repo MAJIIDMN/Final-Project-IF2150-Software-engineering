@@ -28,7 +28,7 @@ class DatabaseService:
                 username TEXT UNIQUE,
                 password TEXT,
                 email TEXT UNIQUE,
-                phonenumber TEXT,
+                phonenumber TEXT UNIQUE,
                 role TEXT, -- 'client', 'wc', 'admin'
                 point INTEGER DEFAULT 0,
                 kecamatan TEXT
@@ -93,6 +93,8 @@ class DatabaseService:
                 return False, "ID sudah ada di database!"
             if "UNIQUE constraint failed: users.email" in str(e):
                 return False, "Email sudah terdaftar!"
+            if "UNIQUE constraint failed: users.phonenumber" in str(e):
+                return False, "Nomor ini sudah terdaftar!"
             return False, "Terjadi kesalahan database."
 
     def fetch_one(self, query, params=()):

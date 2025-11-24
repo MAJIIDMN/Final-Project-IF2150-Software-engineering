@@ -28,12 +28,16 @@ class User:
 
 class Order:
     def __init__(self, owner: User, jenis, berat, foto, oid=None, status="Pending", wc_id=None):
-        services.database.ocounter += 1
-        if (services.database.ocounter > 10**6 -1):
-            print("Order penuh!")
-            return
+        if oid is not None:
+            self.id = oid
         else:
-            self.id = f"O{services.database.ocounter:05d}"
+            global ocounter
+            services.database.ocounter += 1
+            if (services.database.ocounter > 10**6 -1):
+                print("Order penuh!")
+                return
+            else:
+                self.id = f"O{services.database.ocounter:05d}"
         self.owner_id = owner.id
         self.kecamatan = owner.kecamatan 
         self.jenis = jenis
