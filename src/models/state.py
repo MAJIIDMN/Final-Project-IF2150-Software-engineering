@@ -20,6 +20,10 @@ class AppState:
     
     @classmethod
     def save_state(cls):
+        if cls.username is None:
+            cls.username = ""
+        if cls.role is None:
+            cls.role = ""
         data = {
             "is_logged_in": cls.is_logged_in,
             "username": cls.username,

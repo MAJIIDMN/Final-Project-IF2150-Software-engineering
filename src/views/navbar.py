@@ -7,6 +7,10 @@ acc_controller = AccountController()
 
 def create_navbar(page):
     point = acc_controller.get_point(app_state.username)
+    def logout(e):
+        app_state.clear_state()
+        page.clean()
+        page.login_main(page)
     def go_to_point_mart(e):
         page.clean()
         page.point_mart_main(page)
@@ -61,7 +65,7 @@ def create_navbar(page):
                         ft.IconButton(
                             ft.Icons.PERSON,
                             icon_color="white",
-                            on_click=lambda e: print("User clicked"),
+                            on_click=logout,
                         ),
                     ],
                     spacing=20,

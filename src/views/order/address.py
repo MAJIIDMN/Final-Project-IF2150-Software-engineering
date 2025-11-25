@@ -2,6 +2,27 @@ import flet as ft
 from components.shared import create_sidebar
 
 def AddressView(page, order_state):
+    def file_picker_result(e):
+        if e.files and len(e.files) > 0:
+            f = e.files[0]
+            order_state.attachment = f.name
+            try:
+                attachment_label.value = f.name
+                attachment_label.color = "#000000"
+                attachment_label.update()
+            except NameError:
+                pass
+    def clear_attachment(e):
+        order_state.attachment = None
+        try:
+            attachment_label.value = "No file selected"
+            attachment_label.color = "#757575"
+            attachment_label.update()
+        except NameError:
+            pass
+    
+    file_picker = ft.FilePicker(on_result=file_picker_result)
+    page.overlay.append(file_picker)
     
     def district_changed(e):
         order_state.district = e.control.value
@@ -26,6 +47,11 @@ def AddressView(page, order_state):
             return
         if not addr:
             page.snack_bar = ft.SnackBar(ft.Text("Please enter the address."))
+            page.snack_bar.open = True
+            page.update()
+            return
+        if not getattr(order_state, "attachment", None):
+            page.snack_bar = ft.SnackBar(ft.Text("Please add an attachment before continuing."))
             page.snack_bar.open = True
             page.update()
             return
@@ -55,14 +81,16 @@ def AddressView(page, order_state):
                 ft.Container(height=30),
                 ft.Column(
                     controls=[
-                        ft.Text("City", size=12, color="#757575"),
+                        ft.Text("Subdistrict", size=12, color="#757575"),
                                 district_dropdown := ft.Dropdown(
                                     width=400,
                                     options=[
                                         ft.dropdown.Option("- None -"),
-                                        ft.dropdown.Option("Bandung"),
-                                        ft.dropdown.Option("Jakarta"),
-                                        ft.dropdown.Option("Surabaya"),
+                                        ft.dropdown.Option("Coblong"),
+                                        ft.dropdown.Option("Sukajadi"),
+                                        ft.dropdown.Option("Cidadap"),
+                                        ft.dropdown.Option("Cicendo"),
+                                        ft.dropdown.Option("Lengkong"),
                                     ],
                                     value=order_state.district if order_state.district else "- None -",
                                     border_color="#e0e0e0",
@@ -120,13 +148,33 @@ def AddressView(page, order_state):
                 ft.Column(
                     controls=[
                         ft.Text("Add an attachment", size=14, color="#757575"),
-                        ft.Container(
-                            content=ft.Icon(name=ft.Icons.ADD, color="#2e7d32"),
-                            width=60,
-                            height=60,
-                            border=ft.border.all(2, "#e0e0e0"),
-                            border_radius=8,
-                            alignment=ft.alignment.center,
+                        attachment_label := ft.Text(
+                                order_state.attachment if getattr(order_state, "attachment", None) else "No file selected",
+                                size=12,
+                                color="#757575",
+                            ),
+                        ft.Row(
+                            controls=[
+                                ft.Container(
+                                    content=ft.Icon(name=ft.Icons.ADD, color="#2e7d32"),
+                                    width=60,
+                                    height=60,
+                                    border=ft.border.all(2, "#e0e0e0"),
+                                    border_radius=8,
+                                    alignment=ft.alignment.center,
+                                    on_click=lambda e: file_picker.pick_files(allow_multiple=False),
+                                ),
+                                ft.Container(
+                                    content=ft.Icon(name=ft.Icons.IMAGE_OUTLINED, size=30, color="white"),
+                                    width=60,
+                                    height=60,
+                                    bgcolor="#4a90e2",
+                                    border_radius=8,
+                                    alignment=ft.alignment.center,
+                                    on_click=clear_attachment,
+                                ),
+                            ],
+                            spacing=10,
                         ),
                     ],
                     spacing=10,
@@ -178,38 +226,44 @@ def AddressView(page, order_state):
         padding=40,
     )
     
-    # Layout with map background
-    content = ft.Stack(
+    sidebar_ctrl = create_sidebar(page, 2, order_state)
+
+    right_stack = ft.Stack(
         controls=[
-            # Map background placeholder
-            ft.Container(
-                bgcolor="#e0e0e0",
-                expand=True,
+            ft.Image(
+                src="https://img.freepik.com/premium-vector/abstract-flat-map-city-plan-town-detailed-city-map_257312-609.jpg",
+                fit=ft.ImageFit.COVER,
             ),
-            # White card with form
-            ft.Row(
-                controls=[
-                    create_sidebar(page, 2, order_state),
-                    ft.Container(
-                        content=main_content,
-                        bgcolor="white",
-                        border_radius=12,
-                        margin=40,
-                        shadow=ft.BoxShadow(
-                            spread_radius=1,
-                            blur_radius=10,
-                            color=ft.Colors.with_opacity(0.1, "#000000"),
-                        ),
-                        width=500,
-                        height=card_height,
-                    ),
-                ],
-                spacing=0,
+            ft.Container(
+                content=main_content,
+                bgcolor="white",
+                border_radius=12,
+                margin=40,
+                shadow=ft.BoxShadow(
+                    spread_radius=1,
+                    blur_radius=10,
+                    color=ft.Colors.with_opacity(0.1, "#000000"),
+                ),
+                width=500,
+                height=card_height,
             ),
         ],
         expand=True,
     )
-    
+
+    # Layout with map background
+    content = ft.Row(
+        controls=[
+            sidebar_ctrl,
+            ft.Container(   # right panel, takes remaining width
+                content=right_stack,
+                expand=True,
+            ),
+        ],
+        spacing=0,
+        expand=True,
+    )
+
     return ft.Container(
         content=ft.Column(
             controls=[

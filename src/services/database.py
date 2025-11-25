@@ -3,6 +3,7 @@ import pandas as pd
 import threading
 
 usercounter = 0
+ocounter = 0
 
 class DatabaseService:
     def __init__(self, db_name="src/database/growbak.db"):
@@ -18,6 +19,15 @@ class DatabaseService:
         else: 
             last_id = row[0]
             usercounter = int(last_id[1:])
+
+        query_orders = "SELECT id FROM orders WHERE id LIKE 'O%' ORDER BY id DESC LIMIT 1"
+        row_orders = self.fetch_one(query_orders)
+        global ocounter
+        if not row_orders:
+            ocounter = 0
+        else:
+            last_oid = row_orders[0]
+            ocounter = int(last_oid[1:])
 
     def create_tables(self):
         # Membuat tabel-tabel jika belum ada
