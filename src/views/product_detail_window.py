@@ -24,9 +24,11 @@ def main(page: ft.Page, product_data=None):
     # Default data produk
     if product_data is None:
         product_data = {
+            "id": "sample",
             "name": "ABSTRACT PRINT SHIRT",
             "image": "img/product1.png",
             "points": 199,
+            "stock": 10,
             "description": "Relaxed fit shirt. Camp collar and short sleeves. Button-up front.",
             "colors": ["#e0e0e0", "#888888", "#000000", "#7dd3c0", "#c5b3e6"],
             "sizes": ["XS", "S", "M", "L", "XL", "2XL"],
@@ -79,6 +81,16 @@ def main(page: ft.Page, product_data=None):
     # Redeem button
 
     def on_redeem(e):
+        if product_data.get("stock", 0) <= 0:
+            dialog = ft.AlertDialog(
+                title=ft.Text("Perhatian"),
+                content=ft.Text("Stok produk habis"),
+                actions=[ft.TextButton("OK", on_click=lambda x: (setattr(dialog, 'open', False), page.update()))],
+            )
+            page.dialog = dialog
+            dialog.open = True
+            page.update()
+            return
         if not selected_size.current:
             # Show error dialog
             dialog = ft.AlertDialog(
@@ -91,6 +103,7 @@ def main(page: ft.Page, product_data=None):
             page.update()
         else:
             point_mart.redeem_hadiah(AppState.username, product_data["id"], point_mart.load_hadiah())
+            product_data["stock"] = max(product_data.get("stock", 0) - 1, 0)
             page.clean()
             page.product_detail_main(page, product_data)
             dialog = ft.AlertDialog(
@@ -195,6 +208,13 @@ def main(page: ft.Page, product_data=None):
                     size=18,
                     weight=ft.FontWeight.BOLD,
                     color="#1e8c45",
+                ),
+                ft.Container(height=5),
+                ft.Text(
+                    f"Stock: {product_data.get('stock', 0)}",
+                    size=13,
+                    weight=ft.FontWeight.BOLD,
+                    color="#000000",
                 ),
                 ft.Container(height=5),
                 ft.Text(

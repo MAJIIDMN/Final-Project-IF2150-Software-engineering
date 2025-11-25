@@ -41,17 +41,17 @@ def create_navbar(page):
                     [
                         ft.TextButton(
                             "Home", 
-                            style=ft.ButtonStyle(color="white"),
+                            style=ft.ButtonStyle(color="white", text_style=ft.TextStyle(size=20)),
                             on_click=go_to_home,
                             ),
                         ft.TextButton(
                             "Order", 
-                            style=ft.ButtonStyle(color="white"),
+                            style=ft.ButtonStyle(color="white", text_style=ft.TextStyle(size=20)),
                             on_click=go_to_order,
                             ),
                         ft.TextButton(
                             "Point Mart",
-                            style=ft.ButtonStyle(color="white"), 
+                            style=ft.ButtonStyle(color="white", text_style=ft.TextStyle(size=20)), 
                             on_click=go_to_point_mart,
                             )
                             
@@ -62,8 +62,8 @@ def create_navbar(page):
                     [
                         ft.Row(
                             [
-                                ft.Icon(ft.Icons.STAR, color="white", size=20),
-                                ft.Text(str(point), color="white", size=14),
+                                ft.Icon(ft.Icons.STAR, color="white", size=25),
+                                ft.Text(str(point), color="white", size=20),
                             ],
                             spacing=5,
                             vertical_alignment=ft.CrossAxisAlignment.CENTER,
