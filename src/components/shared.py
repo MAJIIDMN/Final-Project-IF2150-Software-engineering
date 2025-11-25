@@ -50,6 +50,7 @@ def create_sidebar(page, current_step, order_state=None):
             spacing=10,
         ),
         width=200,
-        padding=20,
+        padding=ft.padding.only(left=20, top=20, right=20, bottom=20),
+        margin=ft.margin.only(right=40),
         bgcolor="white",
     )

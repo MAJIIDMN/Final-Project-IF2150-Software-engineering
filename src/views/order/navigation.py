@@ -144,7 +144,7 @@ def NavigationView(page, order_state):
                 ft.Column(
                     controls=[
                         ft.Text("Points Gained", size=11, color="#757575"),
-                        ft.Text("+ 25 points", size=24, weight=ft.FontWeight.BOLD, color="#2e7d32"),
+                        ft.Text(f"+ {order_state.point_gained} points", size=24, weight=ft.FontWeight.BOLD, color="#2e7d32"),
                     ],
                     spacing=2,
                 ),

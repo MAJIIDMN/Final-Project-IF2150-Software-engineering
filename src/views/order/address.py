@@ -178,38 +178,44 @@ def AddressView(page, order_state):
         padding=40,
     )
     
-    # Layout with map background
-    content = ft.Stack(
+    sidebar_ctrl = create_sidebar(page, 2, order_state)
+
+    right_stack = ft.Stack(
         controls=[
-            # Map background placeholder
-            ft.Container(
-                bgcolor="#e0e0e0",
-                expand=True,
+            ft.Image(
+                src="https://felipeadanlerma.com/wp-content/uploads/2021/05/5b0a8ef2-4108-4e37-b4c4-aa78edaef9a5.jpeg?w=723",
+                fit=ft.ImageFit.COVER,
             ),
-            # White card with form
-            ft.Row(
-                controls=[
-                    create_sidebar(page, 2, order_state),
-                    ft.Container(
-                        content=main_content,
-                        bgcolor="white",
-                        border_radius=12,
-                        margin=40,
-                        shadow=ft.BoxShadow(
-                            spread_radius=1,
-                            blur_radius=10,
-                            color=ft.Colors.with_opacity(0.1, "#000000"),
-                        ),
-                        width=500,
-                        height=card_height,
-                    ),
-                ],
-                spacing=0,
+            ft.Container(
+                content=main_content,
+                bgcolor="white",
+                border_radius=12,
+                margin=40,
+                shadow=ft.BoxShadow(
+                    spread_radius=1,
+                    blur_radius=10,
+                    color=ft.Colors.with_opacity(0.1, "#000000"),
+                ),
+                width=500,
+                height=card_height,
             ),
         ],
         expand=True,
     )
-    
+
+    # Layout with map background
+    content = ft.Row(
+        controls=[
+            sidebar_ctrl,
+            ft.Container(   # right panel, takes remaining width
+                content=right_stack,
+                expand=True,
+            ),
+        ],
+        spacing=0,
+        expand=True,
+    )
+
     return ft.Container(
         content=ft.Column(
             controls=[
