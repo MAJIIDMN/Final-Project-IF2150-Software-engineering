@@ -159,27 +159,6 @@ def DateAndTimeView(page, order_state):
                                 spacing=2,
                             ),
                             ft.Container(expand=True),
-                            ft.Column(
-                                controls=[
-                                    ft.ElevatedButton(
-                                        "Call",
-                                        style=ft.ButtonStyle(
-                                            bgcolor="white",
-                                            color="#2e7d32",
-                                        ),
-                                        height=35,
-                                    ),
-                                    ft.ElevatedButton(
-                                        "Chat",
-                                        style=ft.ButtonStyle(
-                                            bgcolor="white",
-                                            color="#2e7d32",
-                                        ),
-                                        height=35,
-                                    ),
-                                ],
-                                spacing=5,
-                            ),
                         ],
                         spacing=10,
                     ),
