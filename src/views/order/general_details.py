@@ -593,7 +593,7 @@ def GeneralDetailsView(page, order_state):
                                             on_click=lambda e: file_picker.pick_files(allow_multiple=False),
                                         ),
                                         ft.Container(
-                                            content=ft.Icon(name=ft.Icons.IMAGE_OUTLINED, size=30, color="white"),
+                                            content=ft.Icon(name=ft.Icons.DELETE_OUTLINE, size=30, color="white"),
                                             width=60,
                                             height=60,
                                             bgcolor="#4a90e2",
