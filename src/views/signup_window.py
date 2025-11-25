@@ -1,5 +1,6 @@
 import flet as ft
 import re
+from controllers.account_controller import AccountController
 
 fonts = {
     "Poppins": "fonts/poppins/Poppins-Regular.ttf",
@@ -7,6 +8,7 @@ fonts = {
     "PoppinsSBold": "fonts/poppins/Poppins-SemiBold.ttf",
 }
 
+acc = AccountController()  
 
 def main(page: ft.Page):
     page.title = "GrowBak - Sign Up"
@@ -14,7 +16,7 @@ def main(page: ft.Page):
     page.window_height = 1024
     page.padding = 0
     page.bgcolor = "#ffffff"
-    page.scroll = ft.ScrollMode.AUTO
+    page.scroll = None
     
     page.fonts = fonts
     page.theme = ft.Theme(font_family="Poppins")
@@ -33,6 +35,7 @@ def main(page: ft.Page):
     def on_focus(e, field_ref):
         field_ref.current.label_style = ft.TextStyle(color="#000000")
         page.update()
+    
     def on_blur_label(e, field_ref):
         field_ref.current.label_style = ft.TextStyle(color="#c2c2c2")
         page.update()
@@ -88,6 +91,9 @@ def main(page: ft.Page):
         if not phone.current.value:
             phone.current.error_text = "Phone number harus diisi"
             is_valid = False
+        elif (len(phone.current.value) < 10 or len(phone.current.value) > 13):
+            phone.current.error_text = "Nomor telepon tidak valid"
+            is_valid = False
             
         if not address.current.value:
             address.current.error_text = "Address harus diisi"
@@ -108,8 +114,23 @@ def main(page: ft.Page):
             is_valid = False
         
         page.update()
+
+        # newUser = acc.register(first_name.current.value, last_name.current.value, email.current.value, phone.current.value, address.current.value, password.current.value)
+        
+        #nih kasusnya sama kyk login sih wkwkwk
+
         
         if is_valid:
+            newUser, message = acc.register_user(
+                first_name.current.value,
+                last_name.current.value,
+                email.current.value,
+                phone.current.value,
+                address.current.value,
+                password.current.value,
+                role="client"
+            )
+
             # Tampilkan dialog sukses
             def close_dialog(e):
                 dialog.open = False
@@ -123,6 +144,21 @@ def main(page: ft.Page):
                 password.current.value = ""
                 confirm_password.current.value = ""
                 page.update()
+
+            if not newUser:
+                dialog = ft.AlertDialog(
+                    title=ft.Text("Gagal!"),
+                    content=ft.Text(message),
+                    actions=[
+                        ft.TextButton("OK", on_click=close_dialog)
+                    ]
+                )
+                page.dialog = dialog
+                page.overlay.append(dialog)
+                dialog.open = True
+                page.update()
+                return
+            
             
             dialog = ft.AlertDialog(
                 title=ft.Text("Berhasil!"),
@@ -131,9 +167,14 @@ def main(page: ft.Page):
                     ft.TextButton("OK", on_click=close_dialog)
                 ]
             )
+            # Belum handle ketika orang bernama sama => username sama => tidak bisa diinput karena username harus unik
+
             page.dialog = dialog
+            page.overlay.append(dialog)
             dialog.open = True
             page.update()
+            page.clean()
+            page.point_mart_main(page)
     
     # Left side - Image
     left_side = ft.Container(
@@ -295,6 +336,7 @@ def main(page: ft.Page):
                         ft.Text("Already have an account?", size=13, color="#666666", font_family="Poppins"),
                         ft.TextButton(
                             "Login",
+                            on_click=lambda e: go_to_login(e),
                             style=ft.ButtonStyle(
                                 color="#d32f2f",
                                 padding=0,
