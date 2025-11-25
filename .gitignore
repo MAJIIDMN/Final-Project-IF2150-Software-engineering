@@ -1,7 +1,7 @@
 # State files
 src/state.json
 
-# Project-specific
+# Projet-specific
 my/
 
 # Python bytecode & caches
