@@ -10,6 +10,9 @@ class OrderState:
     def __init__(self):
         self.waste_types = []
         self.weight = ""
+        self.weight_1 = ""
+        self.weight_2 = ""
+        self.weight_3 = ""
         self.condition = "Good"
         self.attachment = None
         self.district = ""
