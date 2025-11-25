@@ -15,49 +15,53 @@ class AccountController:
         self.current_user = None
         self.is_logged_in = False
 
-    def register(self):
+    def register(self, first_name, last_name, email, phone, address, password):
         print("\n--- REGISTER ---")
-        tipe_map = {'1': 'client', '2': 'wc'}
-        choice = input("Daftar sebagai (1: Client, 2: Waste Collector): ")
-        
-        if choice not in tipe_map:
-            print("Pilihan tidak valid.")
-            return
 
-        role = tipe_map[choice]
-        username = input("Username: ")
-        email = input("Email: ")
-        password = input("Password: ")
-        kecamatan = input("Kecamatan: ")
+        role = 'client'
+        username = f"{first_name}_{last_name}".lower()
+        kecamatan = "default_kecamatan"
 
         # Membuat objek user sementara
-        new_user = User(username, password, email, role, kecamatan)
+        new_user = User(username, password, email, kecamatan, role)
 
         # Realisasi Query Q-017 & Q-018 dari DPPL
         query = "INSERT INTO users (id, username, password, email, role, kecamatan) VALUES (?, ?, ?, ?, ?, ?)"
-        success = self.db.execute_query(query, (new_user.id, username, password, email, role, kecamatan))
+        success, message = self.db.execute_query(query, (new_user.id, username, password, email, role, kecamatan))
 
         if success:
             print(f"Registrasi berhasil! ID Anda: {new_user.id}")
+            return new_user, message
         else:
             print("Gagal: Username mungkin sudah terpakai.")
+            return None, None
 
-    def login(self):
-        print("\n--- LOGIN ---")
-        username = input("Username: ")
-        password = input("Password: ")
 
-        # Realisasi Query Q-019, Q-020 dari DPPL
-        query = "SELECT id, username, password, email, role, point FROM users WHERE username = ? AND password = ?"
-        row = self.db.fetch_one(query, (username, password))
+    def login(self, username, email, password):
+
+        if username is not None:
+            query = "SELECT id, username, password, email, role, kecamatan, point FROM users WHERE username = ? AND password = ?"
+            row = self.db.fetch_one(query, (username, password))
+        else:
+            query = "SELECT id, username, password, email, role, kecamatan, point FROM users WHERE email = ? AND password = ?"
+            row = self.db.fetch_one(query, (email, password))
 
         if row:
-            # row = (id, username, password, email, role, point)
-            self.current_user = User(row[1], row[2], row[3], row[4], row[0], row[5])
+            # row = (id, username, password, email, role, kecamatan, point)
+            self.current_user = User(
+                username=row[1],
+                password=row[2],
+                email=row[3],
+                phonenumber="",
+                kecamatan=row[5],
+                role=row[4],
+                point=row[6],
+                uid=row[0]
+            )
             self.is_logged_in = True
-            print(f"Login berhasil! Halo, {self.current_user.username} ({self.current_user.role})")
+            return self.current_user
         else:
-            print("Login gagal: Data tidak ditemukan di database.")
+            return None
 
     def _get_nearest_point(self, from_point):
         key = from_point.strip().lower()
@@ -79,12 +83,15 @@ class AccountController:
             print("Titik asal tidak dikenal, lewati perhitungan titik terdekat.")
         foto = "foto_dummy.jpg"
 
-        new_order = Order(self.current_user.id, jenis, berat, foto)
+        new_order = Order(self.current_user, jenis, berat, foto)
 
         # Realisasi Query Q-013 (Insert/Update Sampah)
         query = "INSERT INTO orders (id, owner_id, jenis, berat, foto_path, status) VALUES (?, ?, ?, ?, ?, ?)"
-        if self.db.execute_query(query, (new_order.id, new_order.owner_id, jenis, berat, foto, "Pending")):
+        success, message = self.db.execute_query(query, (new_order.id, new_order.owner_id, jenis, berat, foto, "Pending"))
+        if success:
             print("Order berhasil disimpan ke database!")
+        else:
+            print(f"Gagal menyimpan order: {message}")
 
     def get_pending_orders(self):
         """Melihat pesanan masuk (Khusus Waste Collector)."""
@@ -107,3 +114,60 @@ class AccountController:
         self.current_user = None
         self.is_logged_in = False
         print("Logout berhasil.")
+
+    def get_point(self, username:str):
+        if username is None:
+            return f"0"
+        query = "SELECT point FROM users WHERE username = ?"
+        row = self.db.fetch_one(query, (username,))
+        if row:
+            point = row[0]
+            if point is not None:
+                return point
+            return f"0"
+        else:
+            return None
+
+    def register_user(self, first, last, email, phonenumber, kecamatan, password, role="client"):
+        username = f'{first}{last}'.lower()
+        new_user = User(username, password, email, phonenumber, kecamatan)
+        query = "INSERT INTO users (id, username, password, email, phonenumber, role, kecamatan) VALUES (?, ?, ?, ?, ?, ?, ?)"
+        success, message = self.db.execute_query(query, (new_user.id, username, password, email, phonenumber, role, kecamatan))
+
+        return success, message
+    
+    def correct_vcode(self, code_input):
+        verif_code = "135182"
+        if (code_input == verif_code):
+            return True
+        else:
+            return False
+        
+
+    def find_user_with_email(self, email):
+        query = "SELECT * FROM users WHERE email = ?"
+        row = self.db.fetch_one(query, (email,))
+        uid, username, password, mail, phone, kecamatan, role, point = row
+        return User(
+            username=username,
+            password=password,
+            email=mail,
+            phonenumber=phone,
+            kecamatan=kecamatan,
+            role=role,
+            point=point,
+            uid=uid,  # penting karena user dari database
+        )
+    
+    def find_email_of_user(self, username):
+        query = "SELECT email FROM users WHERE username = ?"
+        row = self.db.fetch_one(query, (username,))
+        
+        if row:
+            return row[0]   # email
+        return None
+            
+    def change_password(self, new_pass, email):
+        query = "UPDATE users SET password = ? WHERE email = ?"
+        success, message = self.db.execute_query(query, (new_pass, email))
+        return success, message

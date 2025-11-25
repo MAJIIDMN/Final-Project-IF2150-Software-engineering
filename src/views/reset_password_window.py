@@ -1,6 +1,13 @@
 import flet as ft
 import re
 
+from controllers.account_controller import AccountController
+ac = AccountController()
+
+from models.state import AppState
+state = AppState()
+state.load_state()
+
 fonts = {
     "Poppins": "fonts/poppins/Poppins-Regular.ttf",
     "PoppinsBold": "fonts/poppins/Poppins-Bold.ttf",
@@ -8,6 +15,9 @@ fonts = {
 }
 
 def main(page: ft.Page):
+    AppState.load_state()
+    username = AppState.username 
+
     page.title = "GrowBak - Reset Password"
     page.window_width = 1440
     page.window_height = 1024
@@ -73,21 +83,31 @@ def main(page: ft.Page):
         page.update()
 
         if is_valid:
+            email = ac.find_email_of_user(username)
+            success, message = ac.change_password(new_password.current.value, email)
+
             def close_dialog(e):
                 dialog.open = False
                 page.update()
-                page.clean()
-                page.login_main(page)
 
-            dialog = ft.AlertDialog(
-                title=ft.Text("Berhasil!"),
-                content=ft.Text("Password Anda telah berhasil diubah. Silakan login dengan password baru Anda"),
-                actions=[ft.TextButton("OK", on_click=close_dialog)],
-            )
+            if success:
+                dialog = ft.AlertDialog(
+                    title=ft.Text("Berhasil!"),
+                    content=ft.Text("Password Anda telah berhasil diubah. Silakan login dengan password baru Anda"),
+                    actions=[ft.TextButton("OK", on_click=close_dialog)],
+                )
+            else:
+                dialog = ft.AlertDialog(
+                    title=ft.Text("Gagal!"),
+                    content=ft.Text(message),
+                    actions=[ft.TextButton("OK", on_click=close_dialog)],
+                )
 
             page.dialog = dialog
             dialog.open = True
             page.update()
+            page.clean()
+            page.login_main(page)
 
     # Right side - Image
     right_side = ft.Container(

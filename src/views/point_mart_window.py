@@ -1,5 +1,8 @@
 import flet as ft
 from views.navbar import create_navbar
+from models.PointMart import PointMart
+
+point_mart = PointMart()
 
 fonts = {
     "Poppins": "fonts/poppins/Poppins-Regular.ttf",
@@ -25,6 +28,9 @@ def main(page: ft.Page):
     checkbox_availability = ft.Ref[ft.Checkbox]()
     checkbox_out_of_stock = ft.Ref[ft.Checkbox]()
 
+    avail_hadiah = point_mart.avail_hadiah_list()
+    non_avail_hadiah = point_mart.non_avail_hadiah_list()
+
     # Fungsi untuk mengubah warna kotak centang
     def on_checkbox_change(e, checkbox_ref):
         if checkbox_ref.current.value:
@@ -32,6 +38,22 @@ def main(page: ft.Page):
             checkbox_ref.current.check_color = "#FFFFFF"
         else:
             checkbox_ref.current.fill_color = "#FFFFFF"
+        # if checkbox_ref == checkbox_availability and checkbox_ref.current.value:
+        #     checkbox_out_of_stock.current.value = False
+        #     checkbox_out_of_stock.current.fill_color = "#FFFFFF"
+        # elif checkbox_ref == checkbox_out_of_stock and checkbox_ref.current.value:
+        #     checkbox_availability.current.value = False
+        #     checkbox_availability.current.fill_color = "#FFFFFF"
+        products_grid.controls.clear()
+        if checkbox_availability.current.value and not checkbox_out_of_stock.current.value:
+            for product in avail_hadiah:
+                products_grid.controls.append(product_card(product))
+        elif not checkbox_availability.current.value and checkbox_out_of_stock.current.value:
+            for product in non_avail_hadiah:
+                products_grid.controls.append(product_card(product))
+        elif checkbox_availability.current.value and checkbox_out_of_stock.current.value:
+            for product in avail_hadiah + non_avail_hadiah:
+                products_grid.controls.append(product_card(product))
         page.update()
 
     # Fungsi untuk mengubah warna field
@@ -42,69 +64,61 @@ def main(page: ft.Page):
         field_ref.current.label_style = ft.TextStyle(color="#c2c2c2")
         page.update()
 
+
     # Dummy data
-    products = [
-        {
-            "name": "Basic Slim Fit T-Shirt",
-            "image": "img/product1.png",
-            "points": 199,
-            "stock": "In Stock",
-            "category": "Cotton T Shirt",
-            "description": "Relaxed fit shirt. Camp collar and short sleeves. Button-up front.",
-            "colors": ["#e0e0e0", "#888888", "#000000", "#7dd3c0", "#c5b3e6"],
-            "sizes": ["XS", "S", "M", "L", "XL", "2XL"],
-        },
-        {
-            "name": "Basic Heavy Weight T-shirt",
-            "image": "img/product2.png",
-            "points": 199,
-            "stock": "In Stock",
-            "category": "Crewneck T-Shirt",
-            "description": "Premium quality heavy weight t-shirt with comfortable fit.",
-            "colors": ["#e0e0e0", "#888888", "#000000", "#7dd3c0", "#c5b3e6"],
-            "sizes": ["XS", "S", "M", "L", "XL", "2XL"],
-        },
-        {
-            "name": "Full Sleeve Zipper",
-            "image": "img/product3.png",
-            "points": 199,
-            "stock": "In Stock",
-            "category": "Cotton T Shirt",
-            "description": "Comfortable full sleeve shirt with zipper closure for easy wear.",
-            "colors": ["#e0e0e0", "#888888", "#000000", "#7dd3c0", "#c5b3e6"],
-            "sizes": ["XS", "S", "M", "L", "XL", "2XL"],
-        },
-        {
-            "name": "Full Sleeve Zipper",
-            "image": "img/product4.png",
-            "points": 199,
-            "stock": "In Stock",
-            "category": "Cotton T Shirt",
-            "description": "Comfortable full sleeve shirt with zipper closure for easy wear.",
-            "colors": ["#e0e0e0", "#888888", "#000000", "#7dd3c0", "#c5b3e6"],
-            "sizes": ["XS", "S", "M", "L", "XL", "2XL"],
-        },
-        {
-            "name": "Full Sleeve Zipper",
-            "image": "img/product5.png",
-            "points": 199,
-            "stock": "In Stock",
-            "category": "Cotton T Shirt",
-            "description": "Comfortable full sleeve shirt with zipper closure for easy wear.",
-            "colors": ["#e0e0e0", "#888888", "#000000", "#7dd3c0", "#c5b3e6"],
-            "sizes": ["XS", "S", "M", "L", "XL", "2XL"],
-        },
-        {
-            "name": "Full Sleeve Zipper",
-            "image": "img/product6.png",
-            "points": 199,
-            "stock": "In Stock",
-            "category": "Cotton T Shirt",
-            "description": "Comfortable full sleeve shirt with zipper closure for easy wear.",
-            "colors": ["#e0e0e0", "#888888", "#000000", "#7dd3c0", "#c5b3e6"],
-            "sizes": ["XS", "S", "M", "L", "XL", "2XL"],
-        },
-    ]
+    products = point_mart.load_hadiah()
+
+    def sort_by_point(e, reverse: bool, hadiah: list):
+        if checkbox_availability.current.value and not checkbox_out_of_stock.current.value:
+            hadiah = avail_hadiah
+        elif not checkbox_availability.current.value and checkbox_out_of_stock.current.value:
+            hadiah = non_avail_hadiah
+        elif not checkbox_availability.current.value and not checkbox_out_of_stock.current.value:
+            hadiah = []
+        products_grid.controls.clear()
+        if reverse == True:
+            hadiah = point_mart.sort_by_points_down(hadiah)
+        else:
+            hadiah = point_mart.sort_by_points_up(hadiah)
+        
+        for product in hadiah:
+            products_grid.controls.append(product_card(product))
+        page.update()
+
+    def sort_by_stock(e, reverse: bool, hadiah: list):
+        products_grid.controls.clear()
+        if checkbox_availability.current.value and not checkbox_out_of_stock.current.value:
+            hadiah = avail_hadiah
+        elif not checkbox_availability.current.value and checkbox_out_of_stock.current.value:
+            hadiah = non_avail_hadiah
+        elif not checkbox_availability.current.value and not checkbox_out_of_stock.current.value:
+            hadiah = []
+
+        if reverse == True:
+            hadiah = point_mart.sort_by_stock_down(hadiah)
+        else:
+            hadiah = point_mart.sort_by_stock_up(hadiah)
+        
+        for product in hadiah:
+            products_grid.controls.append(product_card(product))
+        page.update()
+
+    def search(e, keyword: str):
+        products_grid.controls.clear()
+        if checkbox_availability.current.value and not checkbox_out_of_stock.current.value:
+            hadiah = avail_hadiah
+        elif not checkbox_availability.current.value and checkbox_out_of_stock.current.value:
+            hadiah = non_avail_hadiah
+        elif not checkbox_availability.current.value and not checkbox_out_of_stock.current.value:
+            hadiah = []
+        searched_products = point_mart.search_hadiah(keyword)
+        for product in searched_products:
+            if product in hadiah:
+                products_grid.controls.append(product_card(product))
+        page.update()
+    
+    def on_search_change(e):
+        search(e, search_input.current.value)
 
     # Top navigation bar
     top_nav = create_navbar(page)
@@ -121,7 +135,7 @@ def main(page: ft.Page):
                     ft.Container(
                         content=ft.Image(
                             src=product["image"],
-                            fit=ft.ImageFit.COVER,
+                            fit=ft.ImageFit.FILL,
                         ),
                         width=180,
                         height=200,
@@ -153,6 +167,7 @@ def main(page: ft.Page):
                     ),
                 ],
                 spacing=8,
+                tight=True,
             ),
             width=180,
             on_click=on_product_click,
@@ -161,7 +176,7 @@ def main(page: ft.Page):
     # Product grid
     products_grid = ft.GridView(
         runs_count=4,
-        spacing=20,
+        spacing=60,
         run_spacing=20,
         child_aspect_ratio=1,
         auto_scroll=False,
@@ -180,6 +195,7 @@ def main(page: ft.Page):
                 ft.ElevatedButton(
                     "Low to High Price",
                     width=float("inf"),
+                    on_click=lambda e: sort_by_point(e, False, products),
                     height=40,
                     bgcolor="#1e8c45",
                     color="white",
@@ -191,6 +207,7 @@ def main(page: ft.Page):
                 ft.ElevatedButton(
                     "High to Low Price",
                     width=float("inf"),
+                    on_click=lambda e: sort_by_point(e, True, products),
                     height=40,
                     bgcolor="#1e8c45",
                     color="white",
@@ -202,6 +219,7 @@ def main(page: ft.Page):
                 ft.ElevatedButton(
                     "Most to Least Stock",
                     width=float("inf"),
+                    on_click=lambda e: sort_by_stock(e, True, products),
                     height=40,
                     bgcolor="#1e8c45",
                     color="white",
@@ -213,6 +231,7 @@ def main(page: ft.Page):
                 ft.ElevatedButton(
                     "Least to Most Stock",
                     width=float("inf"),
+                    on_click=lambda e: sort_by_stock(e, False, products),
                     height=40,
                     bgcolor="#1e8c45",
                     color="white",
@@ -229,7 +248,7 @@ def main(page: ft.Page):
                 ft.Container(height=10),
                 ft.Checkbox(
                     ref=checkbox_availability,
-                    label="Availability (450)",
+                    label=f"Availability ({len(avail_hadiah)})",
                     value=True,
                     fill_color="#1e8c45",
                     check_color="#FFFFFF",
@@ -237,9 +256,10 @@ def main(page: ft.Page):
                 ),
                 ft.Checkbox(
                     ref=checkbox_out_of_stock,
-                    label="Out Of Stock (18)",
-                    value=False,
-                    fill_color="#9e9e9e",
+                    label=f"Out Of Stock ({len(non_avail_hadiah)})",
+                    value=True,
+                    fill_color="#1e8c45",
+                    check_color="#FFFFFF",
                     on_change=lambda e: on_checkbox_change(e, checkbox_out_of_stock),
                 ),
             ],
@@ -270,7 +290,8 @@ def main(page: ft.Page):
                 cursor_color="#000000",
                 label_style=ft.TextStyle(color="#c2c2c2"),
                 on_focus=lambda e: on_focus(e, search_input),
-                on_blur=lambda e: on_blur_label(e, search_input),
+                on_blur=lambda e: on_blur_label(e, search_input),\
+                on_change=on_search_change,
             ),
             
             ft.Container(height=20),
