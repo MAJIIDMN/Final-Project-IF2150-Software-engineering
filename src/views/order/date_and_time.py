@@ -1,4 +1,5 @@
 import flet as ft
+import random
 from components.shared import create_sidebar
 
 def DateAndTimeView(page, order_state):
@@ -118,15 +119,25 @@ def DateAndTimeView(page, order_state):
     def build_collector_card():
         data = getattr(order_state, 'selected_collector_data', None)
         visible = getattr(order_state, 'show_collector', False)
-        if not visible or not data:
+        if not visible:
             return ft.Container()
 
-        name = data.get('name', 'Unknown')
-        role = data.get('role', 'Waste Collector')
-        experience = data.get('experience', '')
-        id_number = data.get('id_number', '')
-        vehicle = data.get('vehicle', '')
-        license_plate = data.get('license_plate', '')
+        # if there's no real data yet, fill with random placeholder values
+        if data:
+            name = data.get('name', 'Unknown')
+            role = data.get('role', 'Waste Collector')
+            experience = data.get('experience', '')
+            id_number = data.get('id_number', '')
+            vehicle = data.get('vehicle', '')
+            license_plate = data.get('license_plate', '')
+        else:
+            # sementara buat randomize
+            name = random.choice(["Vincent R", "Aisyah P.", "Rahmat S.", "Lina K."])
+            role = "Waste Collector"
+            experience = f"{random.randint(3,15)} years"
+            id_number = f"{random.randint(1000,9999)}-{random.randint(1000,9999)}"
+            vehicle = random.choice(["Motorcycle", "Pickup", "Van"])
+            license_plate = f"D {random.randint(1000,9999)} {random.choice(['AA','BB','CC'])}"
 
         return ft.Container(
             content=ft.Column(
@@ -278,8 +289,10 @@ def DateAndTimeView(page, order_state):
         order_state.show_collector = False
     if not hasattr(order_state, 'selected_collector_data'):
         order_state.selected_collector_data = None
+    # show collector panel by default now (placeholders will be used if no data)
+    order_state.show_collector = True
 
-    def make_on_click(s):
+    def update_collector_data(s):
         def _on_click(e):
             # set selected collector data from the stop's collector field (fallback sample)
             collector = s.get('collector', {
@@ -305,7 +318,7 @@ def DateAndTimeView(page, order_state):
                 subdistrict=(order_state.district if getattr(order_state, 'district', None) else "Fast"),
                 time2=s.get('time2'),
                 location2=s.get('location2'),
-                on_click=make_on_click(s),
+                on_click=update_collector_data(s),
             )
         )
         stop_controls.append(ft.Container(height=15))
