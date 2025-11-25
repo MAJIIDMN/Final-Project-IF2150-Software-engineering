@@ -2,7 +2,17 @@ import flet as ft
 from components.shared import create_sidebar
 
 def NavigationView(page, order_state):
-    
+    def call_collector(e):
+        phone = getattr(order_state, "collector_phone", None) or "6281234567890"
+        page.launch_url(f"https://wa.me/{phone}")
+
+    def chat_collector(e):
+        phone = getattr(order_state, "collector_phone", None) or "6281234567890"
+        text = "Hello, I would like to ask about my waste pickup order"
+        import urllib.parse
+        encoded = urllib.parse.quote(text)
+        page.launch_url(f"https://wa.me/{phone}?text={encoded}")
+
     # Waste collector information card
     collector_card = ft.Container(
         content=ft.Column(
@@ -37,6 +47,7 @@ def NavigationView(page, order_state):
                                     ),
                                     height=35,
                                     width=80,
+                                    on_click=call_collector,
                                 ),
                                 ft.ElevatedButton(
                                     "Chat",
@@ -46,6 +57,7 @@ def NavigationView(page, order_state):
                                     ),
                                     height=35,
                                     width=80,
+                                    on_click=chat_collector,
                                 ),
                             ],
                             spacing=5,

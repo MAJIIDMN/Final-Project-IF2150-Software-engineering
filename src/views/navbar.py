@@ -13,13 +13,19 @@ def create_navbar(page):
         page.login_main(page)
     def go_to_point_mart(e):
         page.clean()
-        page.point_mart_main(page)
+        if AppState.is_logged_in:
+            page.point_mart_main(page)
+        else:
+            page.login_main(page)
     def go_to_home(e):
         page.clean()
         page.home_main(page) # Nanti diubah ke home
     def go_to_order(e):
         page.clean()
-        page.order_main(page)
+        if AppState.is_logged_in:
+            page.order_main(page)
+        else:
+            page.login_main(page)
     navbar = ft.Container(
         content=ft.Row(
             [
@@ -74,6 +80,7 @@ def create_navbar(page):
             ],
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
+            spacing=0,
         ),
         padding=ft.padding.symmetric(horizontal=40, vertical=15),
         bgcolor="#145c39",
