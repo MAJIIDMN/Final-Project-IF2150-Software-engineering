@@ -1,6 +1,26 @@
+# State files
 src/state.json
+
+# Project-specific
 my/
-src/*/__pycache__/
+
+# Python bytecode & caches
+**/__pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+# Database files
 src/database/growbak.db
 src/database/growbak.sqbpro
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Editor / IDE
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
