@@ -1,6 +1,7 @@
 import flet as ft
 import re
 from views.navbar import create_navbar
+from models.state import AppState
 
 fonts = {
     "Poppins": "fonts/poppins/Poppins-Regular.ttf",
@@ -9,6 +10,7 @@ fonts = {
 }
 
 def main(page: ft.Page):
+    AppState.load_state()
     page.title = "GrowBak - Home"
     page.window_width = 1440
     page.window_height = 1024
@@ -154,11 +156,17 @@ def main(page: ft.Page):
 
     def go_to_order(e):
         page.clean()
-        page.order_main(page)
+        if AppState.is_logged_in:
+            page.order_main(page)
+        else:
+            page.login_main(page)
 
     def go_to_point_mart(e):
         page.clean()
-        page.point_mart_main(page)
+        if AppState.is_logged_in:
+            page.point_mart_main(page)
+        else:
+            page.login_main(page)
 
     # Buat canvas untuk gradient
     gradient_canvas = ft.Image(
