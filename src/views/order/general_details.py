@@ -71,24 +71,53 @@ def GeneralDetailsView(page, order_state):
         for d in dd:
             if d.value and d.value != "- None -":
                 selected_types.append(d.value)
+
+        # jika dropdown di-set ke None, kosongkan weight terkait
+        pairs_dd_weight = [
+            (first_dropdown, weight_input),
+            (second_dropdown, weight_input_2),
+            (third_dropdown, weight_input_3),
+        ]
+        for d, field in pairs_dd_weight:
+            if d.value in (None, "", "- None -"):
+                field.value = ""
+                field.update()
         update_points()
 
     def update_points():
         try:
-            weight = float(weight_input.value) if weight_input.value else 0
-            # points = int(weight * len(selected_types) * 2)
-
+            # ambil pasangan (tipe, berat) dari ketiga input
             val = [first_dropdown.value, second_dropdown.value, third_dropdown.value]
-            # choose = [i for i in val if v and v!="- None -"]
+            raw_weights = [
+                weight_input.value.strip() if weight_input.value else "",
+                weight_input_2.value.strip() if weight_input_2.value else "",
+                weight_input_3.value.strip() if weight_input_3.value else "",
+            ]
 
-            points = 0
-            for i in val:
-                if (i == "Plastic"):
-                    points += 1
-                elif (i == "Clothes"):
-                    points += 2
-                elif (i == "Metal"):
-                    points += 3
+            total_weight = 0.0
+            points = 0.0
+
+            for t, w_str in zip(val, raw_weights):
+                if not w_str:
+                    continue
+                if t in (None, "", "- None -"):
+                    # berat tanpa tipe diabaikan di sini; akan divalidasi di next_step
+                    continue
+                w = float(w_str)
+                if w < 0:
+                    # abaikan nilai negatif di perhitungan poin
+                    continue
+                base = 0
+                if t == "Plastic":
+                    base = 1
+                elif t == "Clothes":
+                    base = 2
+                elif t == "Metal":
+                    base = 3
+                total_weight += w
+                points += base * w
+
+            order_state.weight = total_weight
             
             # faktor berdasarkan kondisi sampah
             condition_value = None
@@ -105,7 +134,7 @@ def GeneralDetailsView(page, order_state):
             elif condition_value == "Poor":
                 factor = 0.5
 
-            points *= weight * factor
+            points *= factor
             # tampilkan hanya 2 angka di belakang koma
             points_rounded = round(points, 2)
             points_text.value = f"+ {points_rounded:.2f} points"
@@ -116,7 +145,36 @@ def GeneralDetailsView(page, order_state):
         points_text.update()
     
     def weight_changed(e):
-        order_state.weight = e.control.value
+        pairs = [
+            (first_dropdown.value, weight_input),
+            (second_dropdown.value, weight_input_2),
+            (third_dropdown.value, weight_input_3),
+        ]
+
+        total_weight = 0.0
+        for t, field in pairs:
+            v = field.value.strip() if field.value else ""
+            if not v:
+                continue
+            if t in (None, "", "- None -"):
+                # tidak boleh ada berat untuk tipe yang None
+                field.value = ""
+                field.update()
+                show_alert(e.page, "Please select a type before entering weight.")
+                continue
+            try:
+                w = float(v)
+                if w < 0:
+                    field.value = ""
+                    field.update()
+                    show_alert(e.page, "Weight cannot be negative.")
+                    continue
+                total_weight += w
+            except:
+                # biarkan validasi angka ditangani di next_step
+                pass
+
+        order_state.weight = total_weight
         update_points()
     
     def condition_changed(e):
@@ -149,14 +207,37 @@ def GeneralDetailsView(page, order_state):
             page.snack_bar.open = True
             page.update()
             return
-        # weight
-        w = weight_input.value.strip() if weight_input.value else ""
-        try:
-            wv = float(w)
-        except:
-            wv = 0
-        if not w or wv < 3:
-            page.snack_bar = ft.SnackBar(ft.Text("Please enter a valid weight (min. 3 kg)."))
+        # weight – hanya hitung berat dengan tipe valid, dan blok jika ada berat tanpa tipe
+        pairs = [
+            (first_dropdown.value, weight_input.value.strip() if weight_input.value else ""),
+            (second_dropdown.value, weight_input_2.value.strip() if weight_input_2.value else ""),
+            (third_dropdown.value, weight_input_3.value.strip() if weight_input_3.value else ""),
+        ]
+        total_weight = 0.0
+        has_invalid = False
+        has_orphan = False
+        for t, w in pairs:
+            if not w:
+                continue
+            if t in (None, "", "- None -"):
+                has_orphan = True
+                break
+            try:
+                val = float(w)
+            except:
+                has_invalid = True
+                break
+            if val < 0:
+                has_invalid = True
+                break
+            total_weight += val
+        if has_orphan:
+            page.snack_bar = ft.SnackBar(ft.Text("Please select a type for each weight."))
+            page.snack_bar.open = True
+            page.update()
+            return
+        if has_invalid or total_weight < 3:
+            page.snack_bar = ft.SnackBar(ft.Text("Please enter valid weights (total min. 3 kg)."))
             page.snack_bar.open = True
             page.update()
             return
@@ -184,7 +265,7 @@ def GeneralDetailsView(page, order_state):
             return
 
         order_state.waste_types = selected_types.copy()
-        order_state.weight = w
+        order_state.weight = total_weight
         order_state.condition = condition_dropdown.value
         page.go("/order/address")
     
@@ -232,6 +313,28 @@ def GeneralDetailsView(page, order_state):
         text_style=ft.TextStyle(color="#000000"),
         cursor_color="#000000",
         
+    )
+    
+    weight_input_2 = ft.TextField(
+        label="",
+        value="",
+        hint_text="5",
+        width=200,
+        on_change=weight_changed,
+        border_color="#e0e0e0",
+        text_style=ft.TextStyle(color="#000000"),
+        cursor_color="#000000",
+    )
+
+    weight_input_3 = ft.TextField(
+        label="",
+        value="",
+        hint_text="5",
+        width=200,
+        on_change=weight_changed,
+        border_color="#e0e0e0",
+        text_style=ft.TextStyle(color="#000000"),
+        cursor_color="#000000",
     )
     
     points_text = ft.Text(
@@ -334,15 +437,31 @@ def GeneralDetailsView(page, order_state):
                     alignment=ft.MainAxisAlignment.CENTER,
                 ),
                 ft.Container(height=20),
+                # Row pertama: Weight (3 field sejajar)
                 ft.Row(
                     controls=[
                         ft.Column(
                             controls = [
                                 ft.Text("Weight (kg) (min. 3 kg)", size=12, color="#000000"),
-                                weight_input,
+                                ft.Row(
+                                    controls=[
+                                        weight_input,
+                                        weight_input_2,
+                                        weight_input_3,
+                                    ],
+                                    spacing=10,
+                                ),
                             ],
                             spacing=5,
                         ),
+                    ],
+                    spacing=20,
+                    alignment=ft.MainAxisAlignment.CENTER,
+                ),
+                ft.Container(height=10),
+                # Row kedua: Condition dan Points di bawah weight
+                ft.Row(
+                    controls=[
                         ft.Column(
                             controls=[
                                 ft.Text("Condition", size=12, color="#000000"),
@@ -371,7 +490,7 @@ def GeneralDetailsView(page, order_state):
                             spacing=5,
                         ),
                     ],
-                    spacing=20,
+                    spacing=40,
                     alignment=ft.MainAxisAlignment.CENTER,
                 ),
                 ft.Container(height=30),
