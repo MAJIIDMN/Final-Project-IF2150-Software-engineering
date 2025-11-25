@@ -28,6 +28,9 @@ def main(page: ft.Page):
     checkbox_availability = ft.Ref[ft.Checkbox]()
     checkbox_out_of_stock = ft.Ref[ft.Checkbox]()
 
+    avail_hadiah = point_mart.avail_hadiah_list()
+    non_avail_hadiah = point_mart.non_avail_hadiah_list()
+
     # Fungsi untuk mengubah warna kotak centang
     def on_checkbox_change(e, checkbox_ref):
         if checkbox_ref.current.value:
@@ -35,6 +38,22 @@ def main(page: ft.Page):
             checkbox_ref.current.check_color = "#FFFFFF"
         else:
             checkbox_ref.current.fill_color = "#FFFFFF"
+        # if checkbox_ref == checkbox_availability and checkbox_ref.current.value:
+        #     checkbox_out_of_stock.current.value = False
+        #     checkbox_out_of_stock.current.fill_color = "#FFFFFF"
+        # elif checkbox_ref == checkbox_out_of_stock and checkbox_ref.current.value:
+        #     checkbox_availability.current.value = False
+        #     checkbox_availability.current.fill_color = "#FFFFFF"
+        products_grid.controls.clear()
+        if checkbox_availability.current.value and not checkbox_out_of_stock.current.value:
+            for product in avail_hadiah:
+                products_grid.controls.append(product_card(product))
+        elif not checkbox_availability.current.value and checkbox_out_of_stock.current.value:
+            for product in non_avail_hadiah:
+                products_grid.controls.append(product_card(product))
+        elif checkbox_availability.current.value and checkbox_out_of_stock.current.value:
+            for product in avail_hadiah + non_avail_hadiah:
+                products_grid.controls.append(product_card(product))
         page.update()
 
     # Fungsi untuk mengubah warna field
@@ -50,6 +69,12 @@ def main(page: ft.Page):
     products = point_mart.load_hadiah()
 
     def sort_by_point(e, reverse: bool, hadiah: list):
+        if checkbox_availability.current.value and not checkbox_out_of_stock.current.value:
+            hadiah = avail_hadiah
+        elif not checkbox_availability.current.value and checkbox_out_of_stock.current.value:
+            hadiah = non_avail_hadiah
+        elif not checkbox_availability.current.value and not checkbox_out_of_stock.current.value:
+            hadiah = []
         products_grid.controls.clear()
         if reverse == True:
             hadiah = point_mart.sort_by_points_down(hadiah)
@@ -62,6 +87,13 @@ def main(page: ft.Page):
 
     def sort_by_stock(e, reverse: bool, hadiah: list):
         products_grid.controls.clear()
+        if checkbox_availability.current.value and not checkbox_out_of_stock.current.value:
+            hadiah = avail_hadiah
+        elif not checkbox_availability.current.value and checkbox_out_of_stock.current.value:
+            hadiah = non_avail_hadiah
+        elif not checkbox_availability.current.value and not checkbox_out_of_stock.current.value:
+            hadiah = []
+
         if reverse == True:
             hadiah = point_mart.sort_by_stock_down(hadiah)
         else:
@@ -209,7 +241,7 @@ def main(page: ft.Page):
                 ft.Container(height=10),
                 ft.Checkbox(
                     ref=checkbox_availability,
-                    label="Availability (450)",
+                    label=f"Availability ({len(avail_hadiah)})",
                     value=True,
                     fill_color="#1e8c45",
                     check_color="#FFFFFF",
@@ -217,9 +249,10 @@ def main(page: ft.Page):
                 ),
                 ft.Checkbox(
                     ref=checkbox_out_of_stock,
-                    label="Out Of Stock (18)",
-                    value=False,
-                    fill_color="#9e9e9e",
+                    label=f"Out Of Stock ({len(non_avail_hadiah)})",
+                    value=True,
+                    fill_color="#1e8c45",
+                    check_color="#FFFFFF",
                     on_change=lambda e: on_checkbox_change(e, checkbox_out_of_stock),
                 ),
             ],

@@ -68,3 +68,25 @@ class PointMart(PointMartdb):
                 else:
                     return print("Redeem gagal: Poin tidak cukup atau stock habis.")
         return False
+    def avail_hadiah_list(self):
+        row = db_service.load_all("hadiah")
+        hadiah = []
+
+        for item in row:
+            if item[4] > 0:  # Cek stock > 0
+                color_list = json.loads(item[7]) if item[7] else []
+                size_list = json.loads(item[8]) if item[8] else []
+                hadiah.append({"id": item[0], "name": item[1], "points": item[2], "stock": item[4], "image": item[3], "description": item[5], "category": item[6], "colors": color_list, "sizes": size_list})
+        
+        return hadiah
+    def non_avail_hadiah_list(self):
+        row = db_service.load_all("hadiah")
+        hadiah = []
+
+        for item in row:
+            if item[4] == 0:  # Cek stock = 0
+                color_list = json.loads(item[7]) if item[7] else []
+                size_list = json.loads(item[8]) if item[8] else []
+                hadiah.append({"id": item[0], "name": item[1], "points": item[2], "stock": item[4], "image": item[3], "description": item[5], "category": item[6], "colors": color_list, "sizes": size_list})
+        
+        return hadiah
