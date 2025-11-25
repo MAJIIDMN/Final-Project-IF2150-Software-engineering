@@ -87,8 +87,11 @@ class AccountController:
 
         # Realisasi Query Q-013 (Insert/Update Sampah)
         query = "INSERT INTO orders (id, owner_id, jenis, berat, foto_path, status) VALUES (?, ?, ?, ?, ?, ?)"
-        if self.db.execute_query(query, (new_order.id, new_order.owner_id, jenis, berat, foto, "Pending")):
+        success, message = self.db.execute_query(query, (new_order.id, new_order.owner_id, jenis, berat, foto, "Pending"))
+        if success:
             print("Order berhasil disimpan ke database!")
+        else:
+            print(f"Gagal menyimpan order: {message}")
 
     def get_pending_orders(self):
         """Melihat pesanan masuk (Khusus Waste Collector)."""
