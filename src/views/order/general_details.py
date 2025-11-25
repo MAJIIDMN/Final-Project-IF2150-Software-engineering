@@ -15,6 +15,20 @@ def show_alert(page, message):
 
 def GeneralDetailsView(page, order_state):
     selected_types = order_state.waste_types if order_state.waste_types else []
+    # pastikan tidak ada duplikat dan maksimal 3 item
+    seen = set()
+    deduped = []
+    for t in selected_types:
+        if t in seen:
+            continue
+        if t in (None, "", "- None -"):
+            continue
+        seen.add(t)
+        deduped.append(t)
+        if len(deduped) == 3:
+            break
+    selected_types = deduped
+    order_state.waste_types = deduped
     card_height = page.window_height - 140 if page.window_height else 680
     
     def file_picker_result(e):
@@ -27,6 +41,16 @@ def GeneralDetailsView(page, order_state):
                 attachment_label.update()
             except NameError:
                 # attachment_label belum dibuat (awal render), abaikan
+                pass
+            try:
+                # simple preview untuk file gambar
+                if getattr(f, "path", None) and f.name.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp")):
+                    attachment_preview.content = ft.Image(src=f.path, width=80, height=80, fit=ft.ImageFit.COVER)
+                else:
+                    attachment_preview.content = None
+                attachment_preview.update()
+            except NameError:
+                # attachment_preview belum dibuat, abaikan
                 pass
 
     file_picker = ft.FilePicker(on_result=file_picker_result)
@@ -56,32 +80,52 @@ def GeneralDetailsView(page, order_state):
     def dropdown_change(e):
         dd = [first_dropdown, second_dropdown, third_dropdown]
 
-        for other in dd:
-            if other is e.control:
-                continue
-            if e.control.value != "- None -" and e.control.value == other.value:
-                # revert the one the user just changed
-                e.control.value = "- None -"
-                e.control.update()
-                e.page.update()
-                show_alert(e.page, "That item is already selected!")
-                return
-        
+        # sync selected_types dari dropdown
         selected_types.clear()
         for d in dd:
             if d.value and d.value != "- None -":
                 selected_types.append(d.value)
 
-        # jika dropdown di-set ke None, kosongkan weight terkait
+        # jika dropdown di-set ke None, kosongkan dan kunci weight terkait
         pairs_dd_weight = [
             (first_dropdown, weight_input),
             (second_dropdown, weight_input_2),
             (third_dropdown, weight_input_3),
         ]
         for d, field in pairs_dd_weight:
-            if d.value in (None, "", "- None -"):
+            is_none = d.value in (None, "", "- None -")
+            if is_none:
                 field.value = ""
-                field.update()
+            field.read_only = is_none
+            field.bgcolor = "#f5f5f5" if is_none else "white"
+            field.update()
+
+        # perbarui opsi dropdown secara dinamis agar tipe yang sudah dipilih
+        # tidak muncul lagi di dropdown lain
+        all_types = ["Plastic", "Metal", "Clothes"]
+        current_vals = [d.value for d in dd]
+        for i, d in enumerate(dd):
+            used_by_others = {
+                v
+                for j, v in enumerate(current_vals)
+                if j != i and v not in (None, "", "- None -")
+            }
+            allowed = [t for t in all_types if t not in used_by_others]
+            new_options = [ft.dropdown.Option("- None -")] + [
+                ft.dropdown.Option(t) for t in allowed
+            ]
+            d.options = new_options
+            valid_values = ["- None -"] + allowed
+            if d.value not in valid_values:
+                d.value = "- None -"
+            d.update()
+
+        # rebuild selected_types setelah kemungkinan reset value
+        selected_types.clear()
+        for d in dd:
+            if d.value and d.value != "- None -":
+                selected_types.append(d.value)
+
         update_points()
 
     def update_points():
@@ -202,12 +246,25 @@ def GeneralDetailsView(page, order_state):
             attachment_label.update()
         except NameError:
             pass
+        try:
+            attachment_preview.content = None
+            attachment_preview.update()
+        except NameError:
+            pass
     
     def next_step(e):
         # validate required fields before proceeding 
         # waste types
         if len(selected_types) == 0:
             page.snack_bar = ft.SnackBar(ft.Text("Please select at least one waste type."))
+            page.snack_bar.open = True
+            page.update()
+            return
+        # tidak boleh ada tipe yang duplikat
+        type_values = [first_dropdown.value, second_dropdown.value, third_dropdown.value]
+        types_no_none = [t for t in type_values if t not in (None, "", "- None -")]
+        if len(types_no_none) != len(set(types_no_none)):
+            page.snack_bar = ft.SnackBar(ft.Text("Each waste type must be unique."))
             page.snack_bar.open = True
             page.update()
             return
@@ -307,6 +364,11 @@ def GeneralDetailsView(page, order_state):
         # on_click=lambda e: toggle_type(e, "Clothes"),
     )
     
+    # initial enabled/disabled state untuk field weight berdasarkan selected_types
+    has_first_type = len(selected_types) > 0
+    has_second_type = len(selected_types) > 1
+    has_third_type = len(selected_types) > 2
+
     weight_input = ft.TextField(
         label="",
         value=order_state.weight_1 if getattr(order_state, "weight_1", "") else "",
@@ -316,6 +378,8 @@ def GeneralDetailsView(page, order_state):
         border_color="#e0e0e0",
         text_style=ft.TextStyle(color="#000000"),
         cursor_color="#000000",
+        read_only=not has_first_type,
+        bgcolor="#f5f5f5" if not has_first_type else "white",
         
     )
     
@@ -328,6 +392,8 @@ def GeneralDetailsView(page, order_state):
         border_color="#e0e0e0",
         text_style=ft.TextStyle(color="#000000"),
         cursor_color="#000000",
+        read_only=not has_second_type,
+        bgcolor="#f5f5f5" if not has_second_type else "white",
     )
 
     weight_input_3 = ft.TextField(
@@ -339,6 +405,8 @@ def GeneralDetailsView(page, order_state):
         border_color="#e0e0e0",
         text_style=ft.TextStyle(color="#000000"),
         cursor_color="#000000",
+        read_only=not has_third_type,
+        bgcolor="#f5f5f5" if not has_third_type else "white",
     )
     
     points_text = ft.Text(
@@ -536,6 +604,7 @@ def GeneralDetailsView(page, order_state):
                                     ],
                                     spacing=10,
                                 ),
+                                attachment_preview := ft.Container(),
                             ],
                             spacing=10,
                         ),
@@ -546,8 +615,8 @@ def GeneralDetailsView(page, order_state):
                                     controls=[
                                         ft.Checkbox(
                                             value=getattr(order_state, "confirm_clean", False),
-                                            fill_color="#2e7d32",
-                                            check_color="white",
+                                            fill_color="white",
+                                            check_color="#2e7d32",
                                             on_change=clean_checkbox_changed,
                                         ),
                                         ft.Text("You have sort and clean your anorganic waste", size=13, color="#000000"),
@@ -558,8 +627,8 @@ def GeneralDetailsView(page, order_state):
                                     controls=[
                                         ft.Checkbox(
                                             value=getattr(order_state, "confirm_recyclable", False),
-                                            fill_color="#2e7d32",
-                                            check_color="white",
+                                            fill_color="white",
+                                            check_color="#2e7d32",
                                             on_change=recyclable_checkbox_changed,
                                         ),
                                         ft.Text("You agree that this waste is recyclable", size=13, color="#000000"),
@@ -570,8 +639,8 @@ def GeneralDetailsView(page, order_state):
                                     controls=[
                                         ft.Checkbox(
                                             value=getattr(order_state, "confirm_read", False),
-                                            fill_color="#2e7d32",
-                                            check_color="white",
+                                            fill_color="white",
+                                            check_color="#2e7d32",
                                             on_change=read_checkbox_changed,
                                         ),
                                         ft.Text("You have read the waste information", size=13, color="#000000"),
