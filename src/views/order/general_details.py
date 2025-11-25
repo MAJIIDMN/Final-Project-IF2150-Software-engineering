@@ -142,50 +142,50 @@ def GeneralDetailsView(page, order_state):
             pass
     
     def next_step(e):
-        # validate required fields before proceeding
+        # validate required fields before proceeding 
         # waste types
-        # if len(selected_types) == 0:
-        #     page.snack_bar = ft.SnackBar(ft.Text("Please select at least one waste type."))
-        #     page.snack_bar.open = True
-        #     page.update()
-        #     return
-        # # weight
-        # w = weight_input.value.strip() if weight_input.value else ""
-        # try:
-        #     wv = float(w)
-        # except:
-        #     wv = 0
-        # if not w or wv < 3:
-        #     page.snack_bar = ft.SnackBar(ft.Text("Please enter a valid weight (min. 3 kg)."))
-        #     page.snack_bar.open = True
-        #     page.update()
-        #     return
-        # # condition
-        # if condition_dropdown.value in (None, "", "- None -"):
-        #     page.snack_bar = ft.SnackBar(ft.Text("Please select the waste condition."))
-        #     page.snack_bar.open = True
-        #     page.update()
-        #     return
+        if len(selected_types) == 0:
+            page.snack_bar = ft.SnackBar(ft.Text("Please select at least one waste type."))
+            page.snack_bar.open = True
+            page.update()
+            return
+        # weight
+        w = weight_input.value.strip() if weight_input.value else ""
+        try:
+            wv = float(w)
+        except:
+            wv = 0
+        if not w or wv < 3:
+            page.snack_bar = ft.SnackBar(ft.Text("Please enter a valid weight (min. 3 kg)."))
+            page.snack_bar.open = True
+            page.update()
+            return
+        # condition
+        if condition_dropdown.value in (None, "", "- None -"):
+            page.snack_bar = ft.SnackBar(ft.Text("Please select the waste condition."))
+            page.snack_bar.open = True
+            page.update()
+            return
 
-        # if not getattr(order_state, "attachment", None):
-        #     page.snack_bar = ft.SnackBar(ft.Text("Please add an attachment before continuing."))
-        #     page.snack_bar.open = True
-        #     page.update()
-        #     return
+        if not getattr(order_state, "attachment", None):
+            page.snack_bar = ft.SnackBar(ft.Text("Please add an attachment before continuing."))
+            page.snack_bar.open = True
+            page.update()
+            return
 
-        # if not (
-        #     getattr(order_state, "confirm_clean", False)
-        #     and getattr(order_state, "confirm_recyclable", False)
-        #     and getattr(order_state, "confirm_read", False)
-        # ):
-        #     page.snack_bar = ft.SnackBar(ft.Text("Please confirm all checkboxes before continuing."))
-        #     page.snack_bar.open = True
-        #     page.update()
-        #     return
+        if not (
+            getattr(order_state, "confirm_clean", False)
+            and getattr(order_state, "confirm_recyclable", False)
+            and getattr(order_state, "confirm_read", False)
+        ):
+            page.snack_bar = ft.SnackBar(ft.Text("Please confirm all checkboxes before continuing."))
+            page.snack_bar.open = True
+            page.update()
+            return
 
-        # order_state.waste_types = selected_types.copy()
-        # order_state.weight = w
-        # order_state.condition = condition_dropdown.value
+        order_state.waste_types = selected_types.copy()
+        order_state.weight = w
+        order_state.condition = condition_dropdown.value
         page.go("/order/address")
     
     # Waste type images
