@@ -175,6 +175,10 @@ def GeneralDetailsView(page, order_state):
                 pass
 
         order_state.weight = total_weight
+        # simpan masing-masing weight ke state agar bisa dipulihkan saat kembali dari halaman lain
+        order_state.weight_1 = weight_input.value.strip() if weight_input.value else ""
+        order_state.weight_2 = weight_input_2.value.strip() if weight_input_2.value else ""
+        order_state.weight_3 = weight_input_3.value.strip() if weight_input_3.value else ""
         update_points()
     
     def condition_changed(e):
@@ -305,7 +309,7 @@ def GeneralDetailsView(page, order_state):
     
     weight_input = ft.TextField(
         label="",
-        value=order_state.weight if order_state.weight else "",
+        value=order_state.weight_1 if getattr(order_state, "weight_1", "") else "",
         hint_text="5",
         width=200,
         on_change=weight_changed,
@@ -317,7 +321,7 @@ def GeneralDetailsView(page, order_state):
     
     weight_input_2 = ft.TextField(
         label="",
-        value="",
+        value=order_state.weight_2 if getattr(order_state, "weight_2", "") else "",
         hint_text="5",
         width=200,
         on_change=weight_changed,
@@ -328,7 +332,7 @@ def GeneralDetailsView(page, order_state):
 
     weight_input_3 = ft.TextField(
         label="",
-        value="",
+        value=order_state.weight_3 if getattr(order_state, "weight_3", "") else "",
         hint_text="5",
         width=200,
         on_change=weight_changed,
@@ -338,12 +342,17 @@ def GeneralDetailsView(page, order_state):
     )
     
     points_text = ft.Text(
-        "+ 0 points",
+        f"+ {order_state.point_gained:.2f} points" if getattr(order_state, "point_gained", 0) else "+ 0 points",
         size=28,
         weight=ft.FontWeight.BOLD,
         color="#2e7d32",
     )
-    
+
+    # nilai awal dropdown berdasarkan selected_types (maks 3)
+    first_value = selected_types[0] if len(selected_types) > 0 else "- None -"
+    second_value = selected_types[1] if len(selected_types) > 1 else "- None -"
+    third_value = selected_types[2] if len(selected_types) > 2 else "- None -"
+
     first_dropdown = ft.Dropdown(
         width=200,
         options=[
@@ -352,7 +361,7 @@ def GeneralDetailsView(page, order_state):
             ft.dropdown.Option("Metal"),
             ft.dropdown.Option("Clothes"),
         ],
-        value=selected_types[0] if selected_types else "- None -",
+        value=first_value,
         border_color="#e0e0e0",
         color="#000000",
         on_change=dropdown_change,
@@ -366,7 +375,7 @@ def GeneralDetailsView(page, order_state):
             ft.dropdown.Option("Metal"),
             ft.dropdown.Option("Clothes"),
         ],
-        value="- None -",
+        value=second_value,
         border_color="#e0e0e0",
         color="#000000",
         on_change=dropdown_change,
@@ -380,7 +389,7 @@ def GeneralDetailsView(page, order_state):
             ft.dropdown.Option("Metal"),
             ft.dropdown.Option("Clothes"),
         ],
-        value="- None -",
+        value=third_value,
         border_color="#e0e0e0",
         color="#000000",
         on_change=dropdown_change,
