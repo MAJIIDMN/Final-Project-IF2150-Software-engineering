@@ -55,7 +55,7 @@ def main(page: ft.Page):
             [
                 # Background image
                 ft.Image(
-                    src="..\\database\\image\\home\\waste.jpeg",
+                    src="src/database/image/home/waste.jpeg",
                     opacity=0.3,        # semi-transparent
                     # width=None,
                     # height=400,
@@ -137,7 +137,7 @@ def main(page: ft.Page):
                 content_us_left,
                 ft.VerticalDivider(width=40, color="transparent"),
                 ft.Image(
-                    src="..\\database\\image\\home\\wc.jpeg",
+                    src="src/database/image/home/wc.jpeg",
                     width=500,
                     height=350,
                     fit=ft.ImageFit.COVER,
@@ -162,7 +162,7 @@ def main(page: ft.Page):
 
     # Buat canvas untuk gradient
     gradient_canvas = ft.Image(
-        src="..\\database\\image\\home\\background_service.png",
+        src="src/database/image/home/background_service.png",
         fit=ft.ImageFit.COVER,
         expand=True
     )
@@ -186,7 +186,7 @@ def main(page: ft.Page):
 
                             # IMAGE ICON (tidak terpotong)
                             ft.Image(
-                                src="..\\database\\image\\home\\order.png",
+                                src="src/database/image/home/order.png",
                                 width=140,       # ukuran bebas
                                 height=140,
                                 fit=ft.ImageFit.CONTAIN,  # tidak pernah terpotong
@@ -231,7 +231,7 @@ def main(page: ft.Page):
 
                             # IMAGE ICON (tidak terpotong)
                             ft.Image(
-                                src="..\\database\\image\\home\\mart.png",
+                                src="src/database/image/home/mart.png",
                                 width=140,       # ukuran bebas
                                 height=140,
                                 fit=ft.ImageFit.CONTAIN,  # tidak pernah terpotong
