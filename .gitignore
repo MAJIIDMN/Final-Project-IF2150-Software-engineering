@@ -9,6 +9,9 @@ my/
 *.pyc
 *.pyo
 *.pyd
+src/models/__pycache__/*.pyc
+src/views/__pycache__/*.pyc
+src/views/order/__pycache__/*.pyc
 
 # Database files
 src/database/growbak.db
