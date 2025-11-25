@@ -15,14 +15,15 @@ def DateAndTimeView(page, order_state):
     
     # Stop point cards (timeline-style)
     def create_stop_card(stop_id, location, time, status_color=None, status_text=None, subdistrict=None, time2=None, location2=None, on_click=None):
-        # Badge color indicates subdistrict (fallback to neutral green)
-        subdistrict_colors = {
+        # Badge color indicates speed/subdistrict (fallback to neutral green)
+        duration_colors = {
             "Fast": "#2e7d32",
             "Moderate": "#ff9800",
             "Slow": "#ff5722",
         }
+        # prefer explicit subdistrict/speed; fall back to status_text if provided
         badge_text = subdistrict if subdistrict else (status_text if status_text else None)
-        badge_color = subdistrict_colors.get(badge_text, "#2e7d32") if badge_text else None
+        badge_color = duration_colors.get(badge_text, "#2e7d32") if badge_text else None
 
         status_badge = None
         if badge_text:
@@ -250,38 +251,119 @@ def DateAndTimeView(page, order_state):
     # prepare dynamic stops data (use order_state.stops if provided)
     stops = getattr(order_state, 'stops', None)
     if not stops:
-        stops = [
-            {
-                'id': 'ID 1111-2222',
-                'location1': 'Jl. Siliwangi Dalam IV No.28, RT.06/RW.01',
-                'location2': 'Jl. Siliwangi Dalam IV No.28, RT.06/RW.01',
-                'time1': '02:30',
-                'time2': '02:30',
-                'status_text': 'Accepted',
-            },
-            {
-                'id': 'ID 1111-2222',
-                'location1': 'Jl. Tamansari No.43a/56',
-                'location2': 'Jl. Tamansari No.43a/56',
-                'time1': '02:40',
-                'time2': '02:40',
-            },
-            {
-                'id': 'ID 1111-2222',
-                'location1': 'Jl. Raya Cirebon - Bandung, Sayang',
-                'location2': 'Jl. Raya Cirebon - Bandung, Sayang',
-                'time1': '03:30',
-                'time2': '03:30',
-                'status_text': 'Wait Pickup',
-            },
-            {
-                'id': 'ID 1111-2222',
-                'location1': 'Jl. Padasuka Atas Kampung Caringin 3 No.41',
-                'location2': 'Jl. Padasuka Atas Kampung Caringin 3 No.41',
-                'time1': '03:34',
-                'time2': '03:34',
-            },
+        # sample location options (fallback) and a mapping from district -> typical roads
+        sample_locations = [
+            'Jl. Musik VII No.23b',
+            'Jl. Taman Suri I 001/004 No.12',
+            'Jl. Raya Cirebon, Sayang, No.52b',
+            'Jl. Joji Singa XVI No.5/7a',
         ]
+        district_roads = {
+            'Coblong': [
+                'Jl. Tamansari No.43a/56',
+                'Jl. Padasuka Caringin 3 No.41',
+                'Jl. Ciliwung Kecil No.12',
+            ],
+            'Sukajadi': [
+                'Jl. Sukajadi IV No.7',
+                'Jl. Sukajadi Raya No.21',
+                'Jl. Rancabadak No.3',
+            ],
+            'Cidadap': [
+                'Jl. Cidadap III No.1',
+                'Jl. Cidadap Raya No.10',
+                'Jl. Siliwangi Dalam IV No.28',
+            ],
+            'Cicendo': [
+                'Jl. Cicendo Raya No.5',
+                'Jl. Cibadak No.8',
+                'Jl. Aceh No.22',
+            ],
+            'Lengkong': [
+                'Jl. Lengkong Kecil No.2',
+                'Jl. Pasteur No.99',
+                'Jl. Soekarno Hatta No.150',
+            ],
+        }
+        # preferred district from the address page
+        user_district = getattr(order_state, 'district', None)
+        user_address = getattr(order_state, 'address', None)
+        n = random.randint(1, 4)
+
+        # decide whether all stops share the same speed, or are mixed (but always keep ordering: Fast -> Moderate -> Slow)
+        # make 'all same' less likely so mixes are more common, and guarantee reasonable variation
+        if random.random() < 0.12:
+            # all same speed
+            chosen_level = random.choice(["Fast", "Moderate", "Slow"])
+            levels = [chosen_level] * n
+        else:
+            # For small n, ensure sensible mixed choices; for n>=3 include all three levels
+            levels = []
+            if n == 1:
+                levels = [random.choice(["Fast", "Moderate", "Slow"])]
+            elif n == 2:
+                # prefer a Fast+Moderate mix but occasionally use Moderate+Slow or Fast+Slow
+                pair_options = [["Fast", "Moderate"], ["Moderate", "Slow"], ["Fast", "Slow"]]
+                chosen_pair = random.choices(pair_options, weights=[0.6,0.2,0.2], k=1)[0]
+                # keep ordering: expand chosen pair but allow duplication if needed
+                levels = [chosen_pair[0], chosen_pair[1]]
+            else:
+                # n >= 3: include one of each in order, then fill remaining with randomly chosen levels but keep group order
+                base = ["Fast", "Moderate", "Slow"]
+                levels = base.copy()
+                extra = n - 3
+                for _ in range(extra):
+                    # append extras biased toward Fast and Moderate to keep variety
+                    levels.append(random.choices(["Fast","Moderate","Slow"], weights=[0.5,0.3,0.2], k=1)[0])
+                # now ensure levels are grouped in order (all Fast first, then Moderate, then Slow)
+                levels = [l for l in levels if l == "Fast"] + [l for l in levels if l == "Moderate"] + [l for l in levels if l == "Slow"]
+
+        # generate increasing times; faster speeds get smaller increments
+        start_hour = random.randint(2, 8)
+        start_min = random.choice([0, 15, 30, 45])
+        current_minutes = start_hour * 60 + start_min
+        # Fast should be around ~10 minutes between stops; moderate and slow accordingly
+        speed_offset_ranges = {"Fast": (8, 12), "Moderate": (18, 35), "Slow": (45, 90)}
+
+        stops = []
+        for i in range(n):
+            level = levels[i] if i < len(levels) else levels[-1]
+            offset = random.randint(*speed_offset_ranges[level])
+            current_minutes += offset
+            time1 = f"{(current_minutes // 60) % 24:02d}:{current_minutes % 60:02d}"
+            # bottom time slightly later
+            later = random.randint(5, 30)
+            time2_minutes = current_minutes + later
+            time2 = f"{(time2_minutes // 60) % 24:02d}:{time2_minutes % 60:02d}"
+
+            # location1: pick a road from the user's selected district if available, otherwise fallback
+            if user_district and user_district in district_roads:
+                loc1 = random.choice(district_roads[user_district])
+            else:
+                loc1 = random.choice(sample_locations)
+
+            # location2 (destination): use the address user entered on the Address page when available
+            if user_address and user_address.strip():
+                loc2 = user_address
+            else:
+                loc2 = random.choice(sample_locations)
+
+            stops.append({
+                'id': f'ID {random.randint(1000,9999)}-{random.randint(1000,9999)}',
+                'location1': loc1,
+                'location2': loc2,
+                'time1': time1,
+                'time2': time2,
+                'status_text': None,
+                'subdistrict': level,
+            })
+
+        # sort by arrival time (time1) to ensure left column shows fastest first
+        def _time_to_minutes(t):
+            h, m = t.split(':')
+            return int(h) * 60 + int(m)
+
+        stops.sort(key=lambda s: _time_to_minutes(s['time1']))
 
     stop_controls = []
     # ensure flags exist
@@ -315,7 +397,7 @@ def DateAndTimeView(page, order_state):
                 s.get('location1', ''),
                 s.get('time1', ''),
                 status_text=s.get('status_text'),
-                subdistrict=(order_state.district if getattr(order_state, 'district', None) else "Fast"),
+                subdistrict=(s.get('subdistrict') if s.get('subdistrict') is not None else (order_state.district if getattr(order_state, 'district', None) else "Fast")),
                 time2=s.get('time2'),
                 location2=s.get('location2'),
                 on_click=update_collector_data(s),
@@ -340,12 +422,6 @@ def DateAndTimeView(page, order_state):
                     color="#757575",
                 ),
                 ft.Container(height=20),
-                ft.TextField(
-                    prefix_icon=ft.Icons.SEARCH,
-                    hint_text="Search",
-                    width=380,
-                    border_color="#e0e0e0",
-                ),
                 ft.Container(height=20),
                 *stop_controls,
                 ft.Container(height=20),
