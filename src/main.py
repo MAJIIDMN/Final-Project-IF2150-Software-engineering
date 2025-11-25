@@ -13,7 +13,7 @@ from views.forget_password_verify_window import main as forget_password_verify_m
 from views.reset_password_window import main as reset_password_main
 from views.point_mart_window import main as point_mart_main
 from views.product_detail_window import main as product_detail_main
-from views.order.general_details import main as order_main
+from views.order_window import main as order_main
 from views.home_window import main as home_main
 from models.state import AppState
 

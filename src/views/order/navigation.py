@@ -1,5 +1,5 @@
 import flet as ft
-from components.shared import create_header, create_sidebar
+from components.shared import create_sidebar
 
 def NavigationView(page, order_state):
     
@@ -167,6 +167,8 @@ def NavigationView(page, order_state):
         width=380,
     )
     
+    card_height = page.window_height - 140 if page.window_height else 680
+
     # Main content
     main_content = ft.Container(
         content=ft.Column(
@@ -193,7 +195,7 @@ def NavigationView(page, order_state):
             scroll=ft.ScrollMode.AUTO,
         ),
         bgcolor="white",
-        expand=True,
+        expand=False,
         padding=40,
     )
     
@@ -234,6 +236,7 @@ def NavigationView(page, order_state):
                             color=ft.Colors.with_opacity(0.1, "#000000"),
                         ),
                         width=500,
+                        height=card_height,
                     ),
                 ],
                 spacing=0,
@@ -245,7 +248,6 @@ def NavigationView(page, order_state):
     return ft.Container(
         content=ft.Column(
             controls=[
-                create_header(page),
                 content,
             ],
             spacing=0,

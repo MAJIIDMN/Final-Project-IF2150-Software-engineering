@@ -1,44 +1,5 @@
 import flet as ft
 
-def create_header(page):
-    return ft.Container(
-        content=ft.Row(
-            controls=[
-                ft.Row(
-                    controls=[
-                        ft.Icon(name=ft.Icons.SHOPPING_CART_OUTLINED, color="white", size=32),
-                        ft.Text("GrowBak", size=24, weight=ft.FontWeight.BOLD, color="white"),
-                    ],
-                    spacing=10,
-                ),
-                ft.Row(
-                    controls=[
-                        ft.TextButton("Home", style=ft.ButtonStyle(color="white")),
-                        ft.TextButton("Order", style=ft.ButtonStyle(color="white")),
-                        ft.TextButton("Point Mart", style=ft.ButtonStyle(color="white")),
-                    ],
-                    spacing=40,
-                ),
-                ft.Row(
-                    controls=[
-                        ft.Text("999 Points", color="white", size=14),
-                        ft.Container(
-                            content=ft.Icon(name=ft.Icons.PERSON, color="white", size=20),
-                            bgcolor="#4a7c59",
-                            border_radius=20,
-                            padding=8,
-                        ),
-                        ft.Text("User", color="white", size=14),
-                    ],
-                    spacing=10,
-                ),
-            ],
-            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-        ),
-        bgcolor="#2e7d32",
-        padding=ft.padding.symmetric(horizontal=40, vertical=15),
-    )
-
 def create_sidebar(page, current_step, order_state=None):
     steps = [
         {"number": 1, "label": "General Details", "route": "/order/general-details"},
