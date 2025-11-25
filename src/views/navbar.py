@@ -13,13 +13,19 @@ def create_navbar(page):
         page.login_main(page)
     def go_to_point_mart(e):
         page.clean()
-        page.point_mart_main(page)
+        if AppState.is_logged_in:
+            page.point_mart_main(page)
+        else:
+            page.login_main(page)
     def go_to_home(e):
         page.clean()
         page.home_main(page) # Nanti diubah ke home
     def go_to_order(e):
         page.clean()
-        page.order_main(page)
+        if AppState.is_logged_in:
+            page.order_main(page)
+        else:
+            page.login_main(page)
     navbar = ft.Container(
         content=ft.Row(
             [
