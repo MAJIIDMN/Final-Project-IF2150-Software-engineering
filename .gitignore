@@ -1,0 +1,6 @@
+src/state.json
+my/
+src/*/__pycache__/
+*.pyc
+src/database/growbak.db
+src/database/growbak.sqbpro
