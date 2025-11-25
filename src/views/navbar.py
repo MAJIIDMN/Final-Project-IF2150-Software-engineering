@@ -74,6 +74,7 @@ def create_navbar(page):
             ],
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
+            spacing=0,
         ),
         padding=ft.padding.symmetric(horizontal=40, vertical=15),
         bgcolor="#145c39",

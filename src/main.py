@@ -15,6 +15,7 @@ from views.point_mart_window import main as point_mart_main
 from views.product_detail_window import main as product_detail_main
 from views.order_window import main as order_main
 from views.home_window import main as home_main
+from views.informasi_sampah_window import main as info_main
 from models.state import AppState
 
 # # Initialize OrderState
@@ -76,10 +77,8 @@ def app_main(page: ft.Page):
         page.product_detail_main = product_detail_main
         page.order_main = order_main
         page.home_main = home_main
-        if AppState.is_logged_in == True:
-            home_main(page)
-        else:
-            login_main(page)
+        page.info_main = info_main
+        info_main(page)
     except Exception as e:
         print(f"Error: {e}")
         import traceback
