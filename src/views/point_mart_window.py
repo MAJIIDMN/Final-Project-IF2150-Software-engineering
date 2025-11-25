@@ -105,9 +105,16 @@ def main(page: ft.Page):
 
     def search(e, keyword: str):
         products_grid.controls.clear()
+        if checkbox_availability.current.value and not checkbox_out_of_stock.current.value:
+            hadiah = avail_hadiah
+        elif not checkbox_availability.current.value and checkbox_out_of_stock.current.value:
+            hadiah = non_avail_hadiah
+        elif not checkbox_availability.current.value and not checkbox_out_of_stock.current.value:
+            hadiah = []
         searched_products = point_mart.search_hadiah(keyword)
         for product in searched_products:
-            products_grid.controls.append(product_card(product))
+            if product in hadiah:
+                products_grid.controls.append(product_card(product))
         page.update()
     
     def on_search_change(e):
