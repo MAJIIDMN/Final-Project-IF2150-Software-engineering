@@ -26,7 +26,7 @@ def app_main(page: ft.Page):
         page.order_main = order_main
         page.home_main = home_main
         page.info_main = info_main
-        info_main(page)
+        home_main(page)
     except Exception as e:
         print(f"Error: {e}")
         import traceback
