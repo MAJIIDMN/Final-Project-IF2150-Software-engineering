@@ -15,13 +15,11 @@ def DateAndTimeView(page, order_state):
     
     # Stop point cards (timeline-style)
     def create_stop_card(stop_id, location, time, status_color=None, status_text=None, subdistrict=None, time2=None, location2=None, on_click=None):
-        # Badge color indicates speed/subdistrict (fallback to neutral green)
         duration_colors = {
             "Fast": "#2e7d32",
             "Moderate": "#ff9800",
             "Slow": "#ff5722",
         }
-        # prefer explicit subdistrict/speed; fall back to status_text if provided
         badge_text = subdistrict if subdistrict else (status_text if status_text else None)
         badge_color = duration_colors.get(badge_text, "#2e7d32") if badge_text else None
 
@@ -78,7 +76,6 @@ def DateAndTimeView(page, order_state):
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
         )
 
-        # optional bottom time label (under the bottom dot). if time2 not provided, reuse `time`.
         bottom_time_value = time2 if time2 is not None else time
         bottom_time_row = ft.Row(
             controls=[
@@ -123,7 +120,6 @@ def DateAndTimeView(page, order_state):
         if not visible:
             return ft.Container()
 
-        # if there's no real data yet, fill with random placeholder values
         if data:
             name = data.get('name', 'Unknown')
             role = data.get('role', 'Waste Collector')
@@ -248,10 +244,8 @@ def DateAndTimeView(page, order_state):
     
     card_height = page.window_height - 140 if page.window_height else 680
 
-    # prepare dynamic stops data (use order_state.stops if provided)
     stops = getattr(order_state, 'stops', None)
     if not stops:
-        # sample location options (fallback) and a mapping from district -> typical roads
         sample_locations = [
             'Jl. Musik VII No.23b',
             'Jl. Taman Suri I 001/004 No.12',
@@ -285,44 +279,32 @@ def DateAndTimeView(page, order_state):
                 'Jl. Soekarno Hatta No.150',
             ],
         }
-        # preferred district from the address page
         user_district = getattr(order_state, 'district', None)
         user_address = getattr(order_state, 'address', None)
         n = random.randint(1, 4)
 
-        # decide whether all stops share the same speed, or are mixed (but always keep ordering: Fast -> Moderate -> Slow)
-        # make 'all same' less likely so mixes are more common, and guarantee reasonable variation
         if random.random() < 0.12:
-            # all same speed
             chosen_level = random.choice(["Fast", "Moderate", "Slow"])
             levels = [chosen_level] * n
         else:
-            # For small n, ensure sensible mixed choices; for n>=3 include all three levels
             levels = []
             if n == 1:
                 levels = [random.choice(["Fast", "Moderate", "Slow"])]
             elif n == 2:
-                # prefer a Fast+Moderate mix but occasionally use Moderate+Slow or Fast+Slow
                 pair_options = [["Fast", "Moderate"], ["Moderate", "Slow"], ["Fast", "Slow"]]
                 chosen_pair = random.choices(pair_options, weights=[0.6,0.2,0.2], k=1)[0]
-                # keep ordering: expand chosen pair but allow duplication if needed
                 levels = [chosen_pair[0], chosen_pair[1]]
             else:
-                # n >= 3: include one of each in order, then fill remaining with randomly chosen levels but keep group order
                 base = ["Fast", "Moderate", "Slow"]
                 levels = base.copy()
                 extra = n - 3
                 for _ in range(extra):
-                    # append extras biased toward Fast and Moderate to keep variety
                     levels.append(random.choices(["Fast","Moderate","Slow"], weights=[0.5,0.3,0.2], k=1)[0])
-                # now ensure levels are grouped in order (all Fast first, then Moderate, then Slow)
                 levels = [l for l in levels if l == "Fast"] + [l for l in levels if l == "Moderate"] + [l for l in levels if l == "Slow"]
 
-        # generate increasing times; faster speeds get smaller increments
         start_hour = random.randint(2, 8)
         start_min = random.choice([0, 15, 30, 45])
         current_minutes = start_hour * 60 + start_min
-        # Fast should be around ~10 minutes between stops; moderate and slow accordingly
         speed_offset_ranges = {"Fast": (8, 12), "Moderate": (18, 35), "Slow": (45, 90)}
 
         stops = []
@@ -331,18 +313,15 @@ def DateAndTimeView(page, order_state):
             offset = random.randint(*speed_offset_ranges[level])
             current_minutes += offset
             time1 = f"{(current_minutes // 60) % 24:02d}:{current_minutes % 60:02d}"
-            # bottom time slightly later
             later = random.randint(5, 30)
             time2_minutes = current_minutes + later
             time2 = f"{(time2_minutes // 60) % 24:02d}:{time2_minutes % 60:02d}"
 
-            # location1: pick a road from the user's selected district if available, otherwise fallback
             if user_district and user_district in district_roads:
                 loc1 = random.choice(district_roads[user_district])
             else:
                 loc1 = random.choice(sample_locations)
 
-            # location2 (destination): use the address user entered on the Address page when available
             if user_address and user_address.strip():
                 loc2 = user_address
             else:
@@ -358,7 +337,6 @@ def DateAndTimeView(page, order_state):
                 'subdistrict': level,
             })
 
-        # sort by arrival time (time1) to ensure left column shows fastest first
         def _time_to_minutes(t):
             h, m = t.split(':')
             return int(h) * 60 + int(m)
@@ -366,17 +344,14 @@ def DateAndTimeView(page, order_state):
         stops.sort(key=lambda s: _time_to_minutes(s['time1']))
 
     stop_controls = []
-    # ensure flags exist
     if not hasattr(order_state, 'show_collector'):
         order_state.show_collector = False
     if not hasattr(order_state, 'selected_collector_data'):
         order_state.selected_collector_data = None
-    # show collector panel by default now (placeholders will be used if no data)
     order_state.show_collector = True
 
     def update_collector_data(s):
         def _on_click(e):
-            # set selected collector data from the stop's collector field (fallback sample)
             collector = s.get('collector', {
                 'name': 'Vincent R',
                 'role': 'Waste Collector',
@@ -425,7 +400,6 @@ def DateAndTimeView(page, order_state):
                 ft.Container(height=20),
                 *stop_controls,
                 ft.Container(height=20),
-                # collector_card moved to a floating panel (bottom-right)
                 ft.Container(height=20),
                 ft.ElevatedButton(
                     "Back",
