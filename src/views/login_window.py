@@ -102,6 +102,8 @@ def main(page: ft.Page):
             # page.update()
             return
         state.change_state(True, user.username, user.role)
+        if checkbox.current.value:
+            state.save_state()
         page.clean()        
         go_to_point_mart(None)
         # dialog = ft.AlertDialog(

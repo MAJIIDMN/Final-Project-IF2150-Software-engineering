@@ -44,5 +44,4 @@ class AppState:
         cls.is_logged_in = is_logged_in
         cls.username = username
         cls.role = role
-        cls.save_state()
 
