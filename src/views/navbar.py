@@ -5,7 +5,7 @@ from controllers.account_controller import AccountController
 app_state = AppState()
 acc_controller = AccountController()
 
-def create_navbar(page):
+def create_navbar(page, active_page="home"):
     point = acc_controller.get_point(app_state.username)
     def logout(e):
         app_state.clear_state()
@@ -26,6 +26,14 @@ def create_navbar(page):
             page.order_main(page)
         else:
             page.login_main(page)
+    
+    # Fungsi untuk membuat style text sesuai active page
+    def get_nav_text_style(page_name):
+        if page_name == active_page:
+            return ft.TextStyle(size=20, weight=ft.FontWeight.BOLD, font_family="PoppinsBold")
+        else:
+            return ft.TextStyle(size=20, font_family="Poppins")
+    
     navbar = ft.Container(
         content=ft.Row(
             [
@@ -41,17 +49,17 @@ def create_navbar(page):
                     [
                         ft.TextButton(
                             "Home", 
-                            style=ft.ButtonStyle(color="white", text_style=ft.TextStyle(size=20)),
+                            style=ft.ButtonStyle(color="white", text_style=get_nav_text_style("home")),
                             on_click=go_to_home,
                             ),
                         ft.TextButton(
                             "Order", 
-                            style=ft.ButtonStyle(color="white", text_style=ft.TextStyle(size=20)),
+                            style=ft.ButtonStyle(color="white", text_style=get_nav_text_style("order")),
                             on_click=go_to_order,
                             ),
                         ft.TextButton(
                             "Point Mart",
-                            style=ft.ButtonStyle(color="white", text_style=ft.TextStyle(size=20)), 
+                            style=ft.ButtonStyle(color="white", text_style=get_nav_text_style("point_mart")), 
                             on_click=go_to_point_mart,
                             )
                             

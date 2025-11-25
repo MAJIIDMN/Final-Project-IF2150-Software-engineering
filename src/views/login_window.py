@@ -91,15 +91,9 @@ def main(page: ft.Page):
         #tapi tadi aku debung emg bisa jalan dan bisa login. tolong atur lah ya Frontend wkwkwk
 
         if user is None:
-            # Login gagal
-            # dialog = ft.AlertDialog(
-            #     title=ft.Text("Gagal!"),
-            #     content=ft.Text("Email atau password salah"),
-            #     actions=[ft.TextButton("OK", on_click=close_dialog)],
-            # )
-            # page.dialog = dialog
-            # dialog.open = True
-            # page.update()
+            # Login gagal - tampilkan pesan kesalahan
+            password.current.error_text = "Email atau password salah"
+            page.update()
             return
         state.change_state(True, user.username, user.role)
         if checkbox.current.value:

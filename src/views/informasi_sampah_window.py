@@ -23,7 +23,7 @@ def main(page: ft.Page):
 
 
     # ini declare navbar
-    top_nav = create_navbar(page)
+    top_nav = create_navbar(page, "home")
 
     plastic_title = ft.Container(
         width=float("inf"),

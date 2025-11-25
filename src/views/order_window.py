@@ -52,7 +52,7 @@ def main(page: ft.Page):
         navigate_to(page.route)
     
     page.on_route_change = route_change
-    top_nav = create_navbar(page)
+    top_nav = create_navbar(page, "order")
     navigate_to("/order/general-details")
 
     main_container = ft.Column(

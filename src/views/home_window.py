@@ -29,7 +29,7 @@ def main(page: ft.Page):
 
 
     # ini declare navbar
-    top_nav = create_navbar(page)
+    top_nav = create_navbar(page, "home")
 
     about_us_text = ft.Container(
         width = 600,
