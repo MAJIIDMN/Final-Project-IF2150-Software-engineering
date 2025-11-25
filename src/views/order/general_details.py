@@ -66,6 +66,11 @@ def GeneralDetailsView(page, order_state):
                 e.page.update()
                 show_alert(e.page, "That item is already selected!")
                 return
+        
+        selected_types.clear()
+        for d in dd:
+            if d.value and d.value != "- None -":
+                selected_types.append(d.value)
         update_points()
 
     def update_points():
@@ -139,53 +144,52 @@ def GeneralDetailsView(page, order_state):
     def next_step(e):
         # validate required fields before proceeding
         # waste types
-        if len(selected_types) == 0:
-            page.snack_bar = ft.SnackBar(ft.Text("Please select at least one waste type."))
-            page.snack_bar.open = True
-            page.update()
-            return
-        # weight
-        w = weight_input.value.strip() if weight_input.value else ""
-        try:
-            wv = float(w)
-        except:
-            wv = 0
-        if not w or wv < 3:
-            page.snack_bar = ft.SnackBar(ft.Text("Please enter a valid weight (min. 3 kg)."))
-            page.snack_bar.open = True
-            page.update()
-            return
-        # condition
-        if condition_dropdown.value in (None, "", "- None -"):
-            page.snack_bar = ft.SnackBar(ft.Text("Please select the waste condition."))
-            page.snack_bar.open = True
-            page.update()
-            return
+        # if len(selected_types) == 0:
+        #     page.snack_bar = ft.SnackBar(ft.Text("Please select at least one waste type."))
+        #     page.snack_bar.open = True
+        #     page.update()
+        #     return
+        # # weight
+        # w = weight_input.value.strip() if weight_input.value else ""
+        # try:
+        #     wv = float(w)
+        # except:
+        #     wv = 0
+        # if not w or wv < 3:
+        #     page.snack_bar = ft.SnackBar(ft.Text("Please enter a valid weight (min. 3 kg)."))
+        #     page.snack_bar.open = True
+        #     page.update()
+        #     return
+        # # condition
+        # if condition_dropdown.value in (None, "", "- None -"):
+        #     page.snack_bar = ft.SnackBar(ft.Text("Please select the waste condition."))
+        #     page.snack_bar.open = True
+        #     page.update()
+        #     return
 
-        if not getattr(order_state, "attachment", None):
-            page.snack_bar = ft.SnackBar(ft.Text("Please add an attachment before continuing."))
-            page.snack_bar.open = True
-            page.update()
-            return
+        # if not getattr(order_state, "attachment", None):
+        #     page.snack_bar = ft.SnackBar(ft.Text("Please add an attachment before continuing."))
+        #     page.snack_bar.open = True
+        #     page.update()
+        #     return
 
-        if not (
-            getattr(order_state, "confirm_clean", False)
-            and getattr(order_state, "confirm_recyclable", False)
-            and getattr(order_state, "confirm_read", False)
-        ):
-            page.snack_bar = ft.SnackBar(ft.Text("Please confirm all checkboxes before continuing."))
-            page.snack_bar.open = True
-            page.update()
-            return
+        # if not (
+        #     getattr(order_state, "confirm_clean", False)
+        #     and getattr(order_state, "confirm_recyclable", False)
+        #     and getattr(order_state, "confirm_read", False)
+        # ):
+        #     page.snack_bar = ft.SnackBar(ft.Text("Please confirm all checkboxes before continuing."))
+        #     page.snack_bar.open = True
+        #     page.update()
+        #     return
 
-        order_state.waste_types = selected_types.copy()
-        order_state.weight = w
-        order_state.condition = condition_dropdown.value
+        # order_state.waste_types = selected_types.copy()
+        # order_state.weight = w
+        # order_state.condition = condition_dropdown.value
         page.go("/order/address")
     
     # Waste type images
     plastic_img = ft.Container(
-        # content=ft.Icon(name=ft.Icons.RECYCLING_OUTLINED, size=60, color="white"),
         content=ft.Image(src="https://recykal.com/wp-content/uploads/2021/11/12c26-017154e4-47d7-45af-95ab-ad3b8e4ff3f9-1.jpg", width=120,height=80,fit=ft.ImageFit.COVER),
         width=120,
         height=80,
@@ -193,29 +197,29 @@ def GeneralDetailsView(page, order_state):
         border_radius=10,
         alignment=ft.alignment.center,
         border=ft.border.all(2, "#2e7d32" if "Plastic" in selected_types else "#e0e0e0"),
-        on_click=lambda e: toggle_type(e, "Plastic"),
+        # on_click=lambda e: toggle_type(e, "Plastic"),
     )
     
     metal_img = ft.Container(
-        content=ft.Icon(name=ft.Icons.RECYCLING_OUTLINED, size=60, color="white"),
+        content=ft.Image(src="https://media.generalkinematics.com/wp-content/uploads/2023/04/iStock-491962627.jpg", width=120,height=80,fit=ft.ImageFit.COVER),
         width=120,
         height=80,
         bgcolor="#5dade2",
         border_radius=10,
         alignment=ft.alignment.center,
         border=ft.border.all(2, "#2e7d32" if "Metal" in selected_types else "#e0e0e0"),
-        on_click=lambda e: toggle_type(e, "Metal"),
+        # on_click=lambda e: toggle_type(e, "Metal"),
     )
     
     clothes_img = ft.Container(
-        content=ft.Icon(name=ft.Icons.CHECKROOM_OUTLINED, size=60, color="white"),
+        content=ft.Image(src="https://www.coventry.ac.uk/contentassets/e0764d99a985459fab1c995b519ed545/image4jo5.png", width=120,height=80,fit=ft.ImageFit.COVER),
         width=120,
         height=80,
         bgcolor="#85929e",
         border_radius=10,
         alignment=ft.alignment.center,
         border=ft.border.all(2, "#2e7d32" if "Clothes" in selected_types else "#e0e0e0"),
-        on_click=lambda e: toggle_type(e, "Clothes"),
+        # on_click=lambda e: toggle_type(e, "Clothes"),
     )
     
     weight_input = ft.TextField(
