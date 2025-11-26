@@ -25,6 +25,7 @@ def main(page: ft.Page):
     # Variabel untuk menyimpan data
     first_name = ft.Ref[ft.TextField]()
     last_name = ft.Ref[ft.TextField]()
+    username = ft.Ref[ft.TextField]()
     email = ft.Ref[ft.TextField]()
     phone = ft.Ref[ft.TextField]()
     address = ft.Ref[ft.TextField]()
@@ -64,6 +65,7 @@ def main(page: ft.Page):
         # Reset error messages
         first_name.current.error_text = None
         last_name.current.error_text = None
+        username.current.error_text = None
         email.current.error_text = None
         phone.current.error_text = None
         address.current.error_text = None
@@ -79,6 +81,16 @@ def main(page: ft.Page):
             
         if not last_name.current.value:
             last_name.current.error_text = "Last name harus diisi"
+            is_valid = False
+            
+        if not username.current.value:
+            username.current.error_text = "Username harus diisi"
+            is_valid = False
+        elif len(username.current.value) < 3:
+            username.current.error_text = "Username minimal 3 karakter"
+            is_valid = False
+        elif not re.match(r'^[a-zA-Z0-9_]+$', username.current.value):
+            username.current.error_text = "Username hanya boleh huruf, angka, dan underscore"
             is_valid = False
             
         if not email.current.value:
@@ -128,6 +140,7 @@ def main(page: ft.Page):
                 phone.current.value,
                 address.current.value,
                 password.current.value,
+                username.current.value,
                 role="client"
             )
 
@@ -138,6 +151,7 @@ def main(page: ft.Page):
                 # Reset form
                 first_name.current.value = ""
                 last_name.current.value = ""
+                username.current.value = ""
                 email.current.value = ""
                 phone.current.value = ""
                 address.current.value = ""
@@ -267,6 +281,19 @@ def main(page: ft.Page):
                         ),
                     ],
                     spacing=15,
+                ),
+                
+                ft.TextField(
+                    ref=username,
+                    label="Username",
+                    border_color="#e0e0e0",
+                    focused_border_color="#1e8c45",
+                    height=65,
+                    text_style=ft.TextStyle(color="#000000"),
+                    cursor_color="#000000",
+                    label_style=ft.TextStyle(color="#c2c2c2"),
+                    on_focus=lambda e: on_focus(e, username),
+                    on_blur=lambda e: on_blur_label(e, username),
                 ),
                 
                 ft.TextField(
