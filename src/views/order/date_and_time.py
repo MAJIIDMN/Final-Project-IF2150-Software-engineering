@@ -291,6 +291,25 @@ def DateAndTimeView(page, order_state):
             ],
         }
 
+        # Mapping fixed ID waste collector (WC00001 - WC00020) per kecamatan pengguna
+        district_collectors = {
+            'Coblong': [
+                'WC00001', 'WC00002', 'WC00003', 'WC00004',
+            ],
+            'Sukajadi': [
+                'WC00005', 'WC00006', 'WC00007', 'WC00008',
+            ],
+            'Cidadap': [
+                'WC00009', 'WC00010', 'WC00011', 'WC00012',
+            ],
+            'Cicendo': [
+                'WC00013', 'WC00014', 'WC00015', 'WC00016',
+            ],
+            'Lengkong': [
+                'WC00017', 'WC00018', 'WC00019', 'WC00020',
+            ],
+        }
+
         n = random.randint(1, 4)
         levels = _generate_levels(n)
 
@@ -301,7 +320,22 @@ def DateAndTimeView(page, order_state):
 
         stops_local = []
         chosen_district_local = None
-        collectors = db.load_all("wc")
+
+        # Ambil semua collector dari DB lalu bangun pool per kecamatan
+        all_collectors = db.load_all("wc")
+        collectors_by_id = {row[0]: row for row in all_collectors}
+
+        # Pool collector per district berdasarkan mapping ID di atas
+        district_pools = {}
+        for d, ids in district_collectors.items():
+            rows = [collectors_by_id[cid] for cid in ids if cid in collectors_by_id]
+            # fallback jika ID di mapping tidak ada di DB
+            if not rows:
+                rows = all_collectors.copy()
+            district_pools[d] = rows
+
+        global_pool = all_collectors.copy()
+
         for i in range(n):
             level = levels[i] if i < len(levels) else levels[-1]
             offset = random.randint(*speed_offset_ranges[level])
@@ -321,8 +355,18 @@ def DateAndTimeView(page, order_state):
 
             loc2 = user_address if user_address and user_address.strip() else random.choice(sample_locations)
 
-            # pilih collector acak dari database (jika ada)
-            collector = random.choice(collectors) if collectors else None
+            # pilih collector berdasarkan origin district `other` dengan ID fix per district,
+            # dan hindari duplikasi ID di satu list stops
+            pool = None
+            if other and other in district_pools and district_pools[other]:
+                pool = district_pools[other]
+            elif global_pool:
+                pool = global_pool
+
+            collector = None
+            if pool:
+                collector = random.choice(pool)
+                pool.remove(collector)
 
             stops_local.append({
                 'id': collector[0] if collector else f'ID {random.randint(1000,9999)}-{random.randint(1000,9999)}',
@@ -343,13 +387,18 @@ def DateAndTimeView(page, order_state):
         return stops_local, chosen_district_local
 
     chosen_district = ""
+    user_district = getattr(order_state, 'district', None)
+    user_address = getattr(order_state, 'address', None)
+    prev_district = getattr(order_state, 'stops_district', None)
     stops = getattr(order_state, 'stops', None)
-    if not stops:
-        user_district = getattr(order_state, 'district', None)
-        user_address = getattr(order_state, 'address', None)
+
+    # regenerate stops kalau belum ada ATAU kecamatan user berubah
+    if (not stops) or (prev_district != user_district):
         stops, chosen_district = _generate_stops(user_district, user_address)
-        # simpan ke state agar konsisten saat user bolak-balik halaman
+        # simpan ke state agar konsisten saat user bolak-balik halaman,
+        # tapi tetap per-kecamatan
         order_state.stops = stops
+        order_state.stops_district = user_district
 
     stop_controls = []
     if not hasattr(order_state, 'show_collector'):
