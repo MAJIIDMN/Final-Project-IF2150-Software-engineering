@@ -153,7 +153,7 @@ def main(page: ft.Page):
         
         # Dinamis ukuran card berdasarkan window width
         card_width = (page.window_width - 300) / 5  # Estimasi untuk 5 kolom
-        card_img_height = card_width * 1.1  # Rasio tinggi gambar
+        card_img_height = card_width * 1.0 # Rasio tinggi gambar
         card_text_width = card_width - 10
         
         return ft.Container(
@@ -167,7 +167,7 @@ def main(page: ft.Page):
                         width=card_width,
                         height=card_img_height,
                         border_radius=ft.border_radius.all(8),
-                        clip_behavior=ft.ClipBehavior.HARD_EDGE,
+                        clip_behavior=ft.ClipBehavior.NONE,
                     ),
                     ft.Container(height=6),
                     ft.Text(

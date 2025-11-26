@@ -1,5 +1,6 @@
 import flet as ft
 import sys
+from models.state import AppState
 from views.signup_window import main as signup_main
 from views.login_window import main as login_main
 from services.database import DatabaseService
@@ -34,3 +35,5 @@ def app_main(page: ft.Page):
 
 if __name__ == "__main__":
     ft.app(target=app_main)
+    if AppState.save_login == False:
+        AppState.clear_state()
