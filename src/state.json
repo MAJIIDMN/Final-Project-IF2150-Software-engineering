@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 {"is_logged_in": true, "save_login": true, "username": "kebbin", "role": "client"}
+=======
+{"is_logged_in": false, "save_login": false, "username": "", "role": ""}
+>>>>>>> 04dd6c13fcaf27fe874c95ed677342882d7b3715
