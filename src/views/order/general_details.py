@@ -298,8 +298,8 @@ def GeneralDetailsView(page, order_state):
             page.snack_bar.open = True
             page.update()
             return
-        if has_invalid or total_weight < 3 or total_weight > 20:
-            page.snack_bar = ft.SnackBar(ft.Text("Please enter valid weights (total 3-20 kg)."))
+        if has_invalid or total_weight < 3 or total_weight > 30:
+            page.snack_bar = ft.SnackBar(ft.Text("Please enter valid weights (total 3-30 kg)."))
             page.snack_bar.open = True
             page.update()
             return
@@ -520,7 +520,7 @@ def GeneralDetailsView(page, order_state):
                     controls=[
                         ft.Column(
                             controls = [
-                                ft.Text("Weight (kg) (min. 3 kg, max. 20 kg)", size=12, color="#000000"),
+                                ft.Text("Weight (kg) (min. 3 kg, max. 30 kg)", size=12, color="#000000"),
                                 ft.Row(
                                     controls=[
                                         weight_input,
@@ -597,7 +597,7 @@ def GeneralDetailsView(page, order_state):
                                             content=ft.Icon(name=ft.Icons.DELETE_OUTLINE, size=30, color="white"),
                                             width=60,
                                             height=60,
-                                            bgcolor="#4a90e2",
+                                            bgcolor="#d32f2f",
                                             border_radius=8,
                                             alignment=ft.alignment.center,
                                             on_click=clear_attachment,

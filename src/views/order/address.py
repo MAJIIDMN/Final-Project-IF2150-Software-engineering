@@ -95,8 +95,8 @@ def AddressView(page, order_state):
                     controls=[
                         ft.Checkbox(
                             value=order_state.notify_on_arrival,
-                            fill_color="#2e7d32",
-                            check_color="white"
+                            fill_color="white",
+                            check_color="#2e7d32",
                         ),
                         ft.Text("Notify me by phone when the waste collector arrives", size=13, color="#000000"),
                     ],

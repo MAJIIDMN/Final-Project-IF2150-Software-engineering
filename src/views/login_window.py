@@ -90,13 +90,7 @@ def main(page: ft.Page):
             user = acc.login(None, email.current.value, password.current.value)
         else:
             user = acc.login(email.current.value, None, password.current.value)
-
-        #jujur harusnya dah nyambung sama backend 
-        #tapi gatau kenapa nih dialog gagal sama berhasilnya gamau keluar
-        #tapi tadi aku debung emg bisa jalan dan bisa login. tolong atur lah ya Frontend wkwkwk
-
         if user is None:
-            # Login gagal - tampilkan pesan kesalahan
             password.current.error_text = "Email atau password salah"
             page.update()
             return
