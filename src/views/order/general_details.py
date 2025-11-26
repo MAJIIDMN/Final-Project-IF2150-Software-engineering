@@ -1,6 +1,6 @@
 import flet as ft
 from views.navbar import create_navbar
-from components.shared import create_sidebar
+from views.order.shared import create_sidebar
 
 fonts = {
     "Poppins": "fonts/poppins/Poppins-Regular.ttf",
@@ -16,6 +16,7 @@ def show_alert(page, message):
 def GeneralDetailsView(page, order_state):
     selected_types = order_state.waste_types if order_state.waste_types else []
     # pastikan tidak ada duplikat dan maksimal 3 item
+
     seen = set()
     deduped = []
     for t in selected_types:
@@ -99,6 +100,12 @@ def GeneralDetailsView(page, order_state):
             field.read_only = is_none
             field.bgcolor = "#f5f5f5" if is_none else "white"
             field.hint_text = "-" if is_none else "0"
+            # clear any previous field error when enabling the field
+            try:
+                if not is_none:
+                    field.error_text = None
+            except Exception:
+                pass
             field.update()
 
         # perbarui opsi dropdown secara dinamis agar tipe yang sudah dipilih
@@ -127,69 +134,100 @@ def GeneralDetailsView(page, order_state):
             if d.value and d.value != "- None -":
                 selected_types.append(d.value)
 
+        # clear inline errors for dropdowns that now have valid values
+        for d in dd:
+            try:
+                if d.value and d.value != "- None -":
+                    d.error_text = None
+                d.update()
+            except Exception:
+                pass
+
+        # if there is at least one selected type, clear the generic "select at least one" error
+        try:
+            if len(selected_types) > 0 and getattr(first_dropdown, 'error_text', None):
+                first_dropdown.error_text = None
+                first_dropdown.update()
+        except Exception:
+            pass
+
         update_points()
 
     def update_points():
-        try:
-            # ambil pasangan (tipe, berat) dari ketiga input
-            val = [first_dropdown.value, second_dropdown.value, third_dropdown.value]
-            raw_weights = [
-                weight_input.value.strip() if weight_input.value else "",
-                weight_input_2.value.strip() if weight_input_2.value else "",
-                weight_input_3.value.strip() if weight_input_3.value else "",
-            ]
+        # ambil pasangan (tipe, berat) dari ketiga input
+        val = [first_dropdown.value, second_dropdown.value, third_dropdown.value]
+        raw_weights = [
+            weight_input.value.strip() if weight_input.value else "",
+            weight_input_2.value.strip() if weight_input_2.value else "",
+            weight_input_3.value.strip() if weight_input_3.value else "",
+        ]
 
-            total_weight = 0.0
-            points = 0.0
+        total_weight = 0.0
+        points = 0.0
 
-            for t, w_str in zip(val, raw_weights):
-                if not w_str:
-                    continue
-                if t in (None, "", "- None -"):
-                    # berat tanpa tipe diabaikan di sini; akan divalidasi di next_step
-                    continue
-                w = float(w_str)
-                if w < 0:
-                    # abaikan nilai negatif di perhitungan poin
-                    continue
-                base = 0
-                if t == "Plastic":
-                    base = 1
-                elif t == "Clothes":
-                    base = 2
-                elif t == "Metal":
-                    base = 3
-                total_weight += w
-                points += base * w
-
-            order_state.weight = total_weight
-            
-            # faktor berdasarkan kondisi sampah
-            condition_value = None
+        for t, w_str in zip(val, raw_weights):
+            if not w_str:
+                continue
+            if t in (None, "", "- None -"):
+                # berat tanpa tipe diabaikan di sini; akan divalidasi di next_step
+                continue
             try:
-                condition_value = condition_dropdown.value
-            except NameError:
-                condition_value = getattr(order_state, "condition", None)
+                w = float(w_str)
+            except (ValueError, TypeError):
+                # invalid numeric input — skip this weight in points calculation
+                continue
+            if w < 0:
+                # abaikan nilai negatif di perhitungan poin
+                continue
+            base = 0
+            if t == "Plastic":
+                base = 1
+            elif t == "Clothes":
+                base = 2
+            elif t == "Metal":
+                base = 3
+            total_weight += w
+            points += base * w
 
+        order_state.weight = total_weight
+
+        # faktor berdasarkan kondisi sampah
+        condition_value = None
+        try:
+            condition_value = condition_dropdown.value
+        except NameError:
+            condition_value = getattr(order_state, "condition", None)
+
+        factor = 1.0
+        if condition_value == "Good":
             factor = 1.0
-            if condition_value == "Good":
-                factor = 1.0
-            elif condition_value == "Fair":
-                factor = 0.8
-            elif condition_value == "Poor":
-                factor = 0.5
+        elif condition_value == "Fair":
+            factor = 0.8
+        elif condition_value == "Poor":
+            factor = 0.5
 
-            points *= factor
-            # tampilkan hanya 2 angka di belakang koma
-            points_rounded = round(points, 2)
-            points_text.value = f"+ {points_rounded:.2f} points"
-            order_state.point_gained = points_rounded
-
-        except:
-            points_text.value = "+ 0 points"
+        points *= factor
+        # tampilkan hanya 2 angka di belakang koma
+        points_rounded = round(points, 2)
+        points_text.value = f"+ {points_rounded:.2f} points"
+        order_state.point_gained = points_rounded
         points_text.update()
     
     def weight_changed(e):
+        # clear global weight errors when user edits any weight field
+        try:
+            weight_input.error_text = None
+        except Exception:
+            pass
+        try:
+            weight_input_2.error_text = None
+        except Exception:
+            pass
+        try:
+            weight_input_3.error_text = None
+        except Exception:
+            pass
+
         pairs = [
             (first_dropdown.value, weight_input),
             (second_dropdown.value, weight_input_2),
@@ -198,6 +236,12 @@ def GeneralDetailsView(page, order_state):
 
         total_weight = 0.0
         for t, field in pairs:
+            # clear inline error when user edits the field
+            try:
+                field.error_text = None
+            except Exception:
+                pass
+
             v = field.value.strip() if field.value else ""
             if not v:
                 continue
@@ -209,15 +253,28 @@ def GeneralDetailsView(page, order_state):
                 continue
             try:
                 w = float(v)
-                if w < 0:
-                    field.value = ""
-                    field.update()
-                    show_alert(e.page, "Weight cannot be negative.")
-                    continue
-                total_weight += w
-            except:
-                # biarkan validasi angka ditangani di next_step
+            except (ValueError, TypeError):
+                # show inline error on the field similar to signup_window pattern
+                try:
+                    field.error_text = "Please enter a valid number"
+                except Exception:
+                    pass
+                field.update()
+                continue
+            # clear previous error if parsing succeeded
+            try:
+                field.error_text = None
+            except Exception:
                 pass
+            if w < 0:
+                field.value = ""
+                try:
+                    field.error_text = "Weight cannot be negative"
+                except Exception:
+                    pass
+                field.update()
+                continue
+            total_weight += w
 
         order_state.weight = total_weight
         # simpan masing-masing weight ke state agar bisa dipulihkan saat kembali dari halaman lain
@@ -232,12 +289,30 @@ def GeneralDetailsView(page, order_state):
     
     def clean_checkbox_changed(e):
         order_state.confirm_clean = e.control.value
+        try:
+            if getattr(order_state, "confirm_clean", False) and getattr(order_state, "confirm_recyclable", False) and getattr(order_state, "confirm_read", False):
+                checkbox_error.value = ""
+                checkbox_error.update()
+        except Exception:
+            pass
 
     def recyclable_checkbox_changed(e):
         order_state.confirm_recyclable = e.control.value
+        try:
+            if getattr(order_state, "confirm_clean", False) and getattr(order_state, "confirm_recyclable", False) and getattr(order_state, "confirm_read", False):
+                checkbox_error.value = ""
+                checkbox_error.update()
+        except Exception:
+            pass
 
     def read_checkbox_changed(e):
         order_state.confirm_read = e.control.value
+        try:
+            if getattr(order_state, "confirm_clean", False) and getattr(order_state, "confirm_recyclable", False) and getattr(order_state, "confirm_read", False):
+                checkbox_error.value = ""
+                checkbox_error.update()
+        except Exception:
+            pass
 
     def clear_attachment(e):
         order_state.attachment = None
@@ -254,78 +329,114 @@ def GeneralDetailsView(page, order_state):
             pass
     
     def next_step(e):
-        # validate required fields before proceeding 
+        # validate required fields before proceeding and show inline errors
+        # clear previous inline errors
+        first_dropdown.error_text = None
+        second_dropdown.error_text = None
+        third_dropdown.error_text = None
+        weight_input.error_text = None
+        weight_input_2.error_text = None
+        weight_input_3.error_text = None
+        condition_dropdown.error_text = None
+        checkbox_error.value = ""
+        attachment_label.color = "#757575"
+        # collect validity
+        is_valid = True
+
         # waste types
-        if len(selected_types) == 0:
-            page.snack_bar = ft.SnackBar(ft.Text("Please select at least one waste type."))
-            page.snack_bar.open = True
-            page.update()
-            return
-        # tidak boleh ada tipe yang duplikat
         type_values = [first_dropdown.value, second_dropdown.value, third_dropdown.value]
         types_no_none = [t for t in type_values if t not in (None, "", "- None -")]
+        if len(types_no_none) == 0:
+            first_dropdown.error_text = "Please select at least one waste type."
+            is_valid = False
+        # duplicate types
         if len(types_no_none) != len(set(types_no_none)):
-            page.snack_bar = ft.SnackBar(ft.Text("Each waste type must be unique."))
-            page.snack_bar.open = True
-            page.update()
-            return
-        # weight – hanya hitung berat dengan tipe valid, dan blok jika ada berat tanpa tipe
+            # mark all dropdowns that are duplicates
+            seen = set()
+            for idx, val in enumerate(type_values):
+                if val in (None, "", "- None -"):
+                    continue
+                if val in seen:
+                    if idx == 0:
+                        first_dropdown.error_text = "Duplicate type"
+                    elif idx == 1:
+                        second_dropdown.error_text = "Duplicate type"
+                    elif idx == 2:
+                        third_dropdown.error_text = "Duplicate type"
+                    is_valid = False
+                else:
+                    seen.add(val)
+
+        # weight validation
         pairs = [
-            (first_dropdown.value, weight_input.value.strip() if weight_input.value else ""),
-            (second_dropdown.value, weight_input_2.value.strip() if weight_input_2.value else ""),
-            (third_dropdown.value, weight_input_3.value.strip() if weight_input_3.value else ""),
+            (first_dropdown.value, weight_input),
+            (second_dropdown.value, weight_input_2),
+            (third_dropdown.value, weight_input_3),
         ]
         total_weight = 0.0
-        has_invalid = False
-        has_orphan = False
-        for t, w in pairs:
-            if not w:
+        for t, field in pairs:
+            v = field.value.strip() if field.value else ""
+            if not v:
                 continue
             if t in (None, "", "- None -"):
-                has_orphan = True
-                break
+                field.error_text = "Please select a type for this weight."
+                field.update()
+                is_valid = False
+                continue
             try:
-                val = float(w)
-            except:
-                has_invalid = True
-                break
+                val = float(v)
+            except (ValueError, TypeError):
+                field.error_text = "Please enter a valid number"
+                field.update()
+                is_valid = False
+                continue
             if val < 0:
-                has_invalid = True
-                break
+                field.error_text = "Weight cannot be negative"
+                field.update()
+                is_valid = False
+                continue
             total_weight += val
-        if has_orphan:
-            page.snack_bar = ft.SnackBar(ft.Text("Please select a type for each weight."))
-            page.snack_bar.open = True
-            page.update()
-            return
-        if has_invalid or total_weight < 3 or total_weight > 30:
-            page.snack_bar = ft.SnackBar(ft.Text("Please enter valid weights (total 3-30 kg)."))
-            page.snack_bar.open = True
-            page.update()
-            return
+
+        if total_weight < 3 or total_weight > 30:
+            # set general error on first weight field
+            weight_input.error_text = "Total weight must be between 3 and 30 kg"
+            is_valid = False
+
         # condition
         if condition_dropdown.value in (None, "", "- None -"):
-            page.snack_bar = ft.SnackBar(ft.Text("Please select the waste condition."))
-            page.snack_bar.open = True
-            page.update()
-            return
+            condition_dropdown.error_text = "Please select the waste condition."
+            is_valid = False
 
+        # attachment
         if not getattr(order_state, "attachment", None):
-            page.snack_bar = ft.SnackBar(ft.Text("Please add an attachment before continuing."))
-            page.snack_bar.open = True
-            page.update()
-            return
+            attachment_label.value = "Please add an attachment"
+            attachment_label.color = "#d32f2f"
+            is_valid = False
 
+        # checkboxes
         if not (
             getattr(order_state, "confirm_clean", False)
             and getattr(order_state, "confirm_recyclable", False)
             and getattr(order_state, "confirm_read", False)
         ):
-            page.snack_bar = ft.SnackBar(ft.Text("Please confirm all checkboxes before continuing."))
-            page.snack_bar.open = True
-            page.update()
+            checkbox_error.value = "Please confirm all checkboxes before continuing."
+            is_valid = False
+
+        # update UI with inline errors
+        first_dropdown.update()
+        second_dropdown.update()
+        third_dropdown.update()
+        weight_input.update()
+        weight_input_2.update()
+        weight_input_3.update()
+        condition_dropdown.update()
+        attachment_label.update()
+        checkbox_error.update()
+
+        if not is_valid:
             return
 
+        # all good, save and proceed
         order_state.waste_types = selected_types.copy()
         order_state.weight = total_weight
         order_state.condition = condition_dropdown.value
@@ -648,6 +759,7 @@ def GeneralDetailsView(page, order_state):
                                     ],
                                     spacing=10,
                                 ),
+                                checkbox_error := ft.Text("", size=12, color="#d32f2f"),
                             ],
                             spacing=15,
                         ),
