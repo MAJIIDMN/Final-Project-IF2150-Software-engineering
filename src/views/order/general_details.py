@@ -441,7 +441,11 @@ def GeneralDetailsView(page, order_state):
         order_state.weight = total_weight
         order_state.condition = condition_dropdown.value
         page.go("/order/address")
-    
+
+    def go_to_info(page):
+        page.clean()
+        page.info_main(page)
+
     # Waste type images
     plastic_img = ft.Container(
         content=ft.Image(src="https://recykal.com/wp-content/uploads/2021/11/12c26-017154e4-47d7-45af-95ab-ad3b8e4ff3f9-1.jpg", width=120,height=80,fit=ft.ImageFit.COVER),
@@ -451,7 +455,7 @@ def GeneralDetailsView(page, order_state):
         border_radius=10,
         alignment=ft.alignment.center,
         border=ft.border.all(2, "#2e7d32" if "Plastic" in selected_types else "#e0e0e0"),
-        # on_click=lambda e: toggle_type(e, "Plastic"),
+        on_click=lambda e: go_to_info(page),
     )
     
     metal_img = ft.Container(
@@ -462,7 +466,7 @@ def GeneralDetailsView(page, order_state):
         border_radius=10,
         alignment=ft.alignment.center,
         border=ft.border.all(2, "#2e7d32" if "Metal" in selected_types else "#e0e0e0"),
-        # on_click=lambda e: toggle_type(e, "Metal"),
+        on_click=lambda e: go_to_info(page),
     )
     
     clothes_img = ft.Container(
@@ -473,7 +477,7 @@ def GeneralDetailsView(page, order_state):
         border_radius=10,
         alignment=ft.alignment.center,
         border=ft.border.all(2, "#2e7d32" if "Clothes" in selected_types else "#e0e0e0"),
-        # on_click=lambda e: toggle_type(e, "Clothes"),
+        on_click=lambda e: go_to_info(page),
     )
     
     # initial enabled/disabled state untuk field weight berdasarkan selected_types

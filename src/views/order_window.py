@@ -26,7 +26,7 @@ class OrderState:
 
 
 def main(page: ft.Page):
-    page.title = "GrowBak"
+    page.title = "GrowBak - Order"
     page.window_width = 1440
     page.window_height = 1024
     page.padding = 0
