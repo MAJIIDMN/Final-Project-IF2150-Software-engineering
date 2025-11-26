@@ -50,7 +50,13 @@ def create_sidebar(page, current_step, order_state=None):
             spacing=10,
         ),
         width=200,
-        padding=ft.padding.only(left=20, top=20, right=20, bottom=20),
+        padding=ft.padding.only(left=20, top=28, right=28, bottom=36),
         margin=ft.margin.only(right=40),
         bgcolor="white",
+        border_radius=12,
+        shadow=ft.BoxShadow(
+            spread_radius=1,
+            blur_radius=10,
+            color=ft.Colors.with_opacity(0.08, "#000000"),
+        ),
     )
