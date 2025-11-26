@@ -95,10 +95,12 @@ def main(page: ft.Page):
             password.current.error_text = "Email atau password salah"
             page.update()
             return
-        state.change_state(True, user.username, user.role)
         if checkbox.current.value:
-            state.save_state()
-        page.clean()        
+            state.change_state(True, True, user.username, user.role)
+        else:
+            state.change_state(True, False, user.username, user.role)
+        state.save_state()
+        page.clean()   
         go_to_home(None)
         # dialog = ft.AlertDialog(
         #     title=ft.Text("Berhasil!"),
