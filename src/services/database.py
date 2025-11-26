@@ -82,7 +82,9 @@ class DatabaseService:
                 foto_path TEXT,
                 stock INTEGER,
                 description TEXT,
-                kategori TEXT
+                kategori TEXT,
+                color TEXT,
+                size TEXT
             )
         """)
 

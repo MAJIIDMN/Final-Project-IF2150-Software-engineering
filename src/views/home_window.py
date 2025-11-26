@@ -29,7 +29,7 @@ def main(page: ft.Page):
 
 
     # ini declare navbar
-    top_nav = create_navbar(page)
+    top_nav = create_navbar(page, "home")
 
     about_us_text = ft.Container(
         width = 600,
@@ -38,7 +38,7 @@ def main(page: ft.Page):
                 ft.Text("Welcome to GrowBak!", size=70, weight="bold", color="white"),
                 ft.Divider(height=30, color="transparent"),
                 ft.Text("Growbak is a smart waste management platform that connects users, waste collectors, and recycling centers through one integrated system.\nYou can sort your recyclable waste, schedule pickup appointments, and earn reward points for every successful collection.", 
-                        size=20, color="white", width=800,),
+                        text_align=ft.TextAlign.JUSTIFY, size=20, color="white", width=800,),
             ],
             spacing=10,
             alignment=ft.MainAxisAlignment.START,
@@ -95,7 +95,7 @@ def main(page: ft.Page):
                         ft.Row([
                             ft.VerticalDivider(width=30, color="transparent"),
                             ft.Text("Recycling helps reduce pollution caused by waste. When we recycle materials like plastic, paper, and metal, we lessen the need for new raw materials — meaning fewer trees cut down, less mining, and lower carbon emissions. This keeps our air, water, and soil cleaner and healthier.", 
-                                size=15, color="black", width=600,),
+                                text_align=ft.TextAlign.JUSTIFY,size=15, color="black", width=600,),
                             ],
                             alignment=ft.MainAxisAlignment.START,
                         ),
@@ -104,7 +104,7 @@ def main(page: ft.Page):
                         ft.Row([
                             ft.VerticalDivider(width=30, color="transparent"),
                             ft.Text("Producing new materials from scratch consumes a lot of natural resources and energy. Recycling allows us to reuse existing materials, significantly cutting down energy use and preserving limited resources such as oil, minerals, and forests for future generations.", 
-                                size=15, color="black", width=600,),
+                                text_align=ft.TextAlign.JUSTIFY, size=15, color="black", width=600,),
                             ],
                             alignment=ft.MainAxisAlignment.START,
                         ),
@@ -113,7 +113,7 @@ def main(page: ft.Page):
                         ft.Row([
                             ft.VerticalDivider(width=30, color="transparent"),
                             ft.Text("Recycling supports the growth of a circular economy, where waste becomes a valuable resource instead of a burden. It creates jobs in collection, sorting, and processing industries — and through platforms like Growbak, it turns responsible behavior into real rewards for everyone involved.", 
-                                size=15, color="black", width=600,),
+                                text_align=ft.TextAlign.JUSTIFY, size=15, color="black", width=600,),
                             ],
                             alignment=ft.MainAxisAlignment.START,
                         )

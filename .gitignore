@@ -13,7 +13,7 @@ my/
 # Database files
 src/database/growbak.db
 src/database/growbak.sqbpro
-
+git 
 # Virtual environments
 .venv/
 venv/

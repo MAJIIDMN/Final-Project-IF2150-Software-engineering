@@ -91,21 +91,15 @@ def main(page: ft.Page):
         #tapi tadi aku debung emg bisa jalan dan bisa login. tolong atur lah ya Frontend wkwkwk
 
         if user is None:
-            # Login gagal
-            # dialog = ft.AlertDialog(
-            #     title=ft.Text("Gagal!"),
-            #     content=ft.Text("Email atau password salah"),
-            #     actions=[ft.TextButton("OK", on_click=close_dialog)],
-            # )
-            # page.dialog = dialog
-            # dialog.open = True
-            # page.update()
+            # Login gagal - tampilkan pesan kesalahan
+            password.current.error_text = "Email atau password salah"
+            page.update()
             return
         state.change_state(True, user.username, user.role)
         if checkbox.current.value:
             state.save_state()
         page.clean()        
-        go_to_point_mart(None)
+        go_to_home(None)
         # dialog = ft.AlertDialog(
         #     title=ft.Text("Berhasil!"),
         #     content=ft.Text(f"Selamat datang, {user.username}!"),
@@ -126,9 +120,9 @@ def main(page: ft.Page):
         page.clean()
         page.forget_password_main(page)
 
-    def go_to_point_mart(e):
+    def go_to_home(e):
         page.clean()
-        page.point_mart_main(page)
+        page.home_main(page)
     
     # Left side - Image
     right_side = ft.Container(

@@ -232,6 +232,8 @@ def AddressView(page, order_state):
         controls=[
             ft.Image(
                 src="https://img.freepik.com/premium-vector/abstract-flat-map-city-plan-town-detailed-city-map_257312-609.jpg",
+                width=page.window_width - sidebar_ctrl.width if page.window_width else 940,
+                height=page.window_height - 140 if page.window_height else 1024,
                 fit=ft.ImageFit.COVER,
             ),
             ft.Container(
