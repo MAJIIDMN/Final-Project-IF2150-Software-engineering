@@ -85,13 +85,7 @@ def main(page: ft.Page):
             user = acc.login(None, email.current.value, password.current.value)
         else:
             user = acc.login(email.current.value, None, password.current.value)
-
-        #jujur harusnya dah nyambung sama backend 
-        #tapi gatau kenapa nih dialog gagal sama berhasilnya gamau keluar
-        #tapi tadi aku debung emg bisa jalan dan bisa login. tolong atur lah ya Frontend wkwkwk
-
         if user is None:
-            # Login gagal - tampilkan pesan kesalahan
             password.current.error_text = "Email atau password salah"
             page.update()
             return
@@ -102,15 +96,6 @@ def main(page: ft.Page):
         state.save_state()
         page.clean()   
         go_to_home(None)
-        # dialog = ft.AlertDialog(
-        #     title=ft.Text("Berhasil!"),
-        #     content=ft.Text(f"Selamat datang, {user.username}!"),
-        #     actions=[ft.TextButton("OK", on_click=close_dialog)],
-        # )
-        # page.dialog = dialog
-        # dialog.open = True
-        # page.update()
-        # page.point_mart_main(page)
 
     # Fungsi navigasi ke Sign Up
     def go_to_signup(e):
