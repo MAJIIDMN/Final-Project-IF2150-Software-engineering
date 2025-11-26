@@ -10,12 +10,26 @@ class AppState:
     def load_state(cls):
         try:
             with open("src/state.json", "r") as f:
-                data = json.load(f)
+                content = f.read().strip()
+                if not content:
+                    # File kosong, inisialisasi dengan default
+                    cls.is_logged_in = False
+                    cls.save_login = False
+                    cls.username = None
+                    cls.role = None
+                    return
+                data = json.loads(content)
                 cls.is_logged_in = data.get("is_logged_in", False)
                 cls.save_login = data.get("save_login", False)
                 cls.username = data.get("username", None)
                 cls.role = data.get("role", None)
         except FileNotFoundError:
+            cls.is_logged_in = False
+            cls.save_login = False
+            cls.username = None
+            cls.role = None
+        except json.JSONDecodeError:
+            # JSON tidak valid, inisialisasi dengan default
             cls.is_logged_in = False
             cls.save_login = False
             cls.username = None
