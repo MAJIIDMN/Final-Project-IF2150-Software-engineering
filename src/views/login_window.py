@@ -99,7 +99,7 @@ def main(page: ft.Page):
         if checkbox.current.value:
             state.save_state()
         page.clean()        
-        go_to_point_mart(None)
+        go_to_home(None)
         # dialog = ft.AlertDialog(
         #     title=ft.Text("Berhasil!"),
         #     content=ft.Text(f"Selamat datang, {user.username}!"),
@@ -120,9 +120,9 @@ def main(page: ft.Page):
         page.clean()
         page.forget_password_main(page)
 
-    def go_to_point_mart(e):
+    def go_to_home(e):
         page.clean()
-        page.point_mart_main(page)
+        page.home_main(page)
     
     # Left side - Image
     right_side = ft.Container(
