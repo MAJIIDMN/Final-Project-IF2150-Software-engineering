@@ -116,7 +116,7 @@ def main(page: ft.Page, product_data=None):
             page.update()
 
     # Top navigation bar
-    top_nav = create_navbar(page)
+    top_nav = create_navbar(page, "point_mart")
 
     # Left side - Product image
     left_side = ft.Container(
