@@ -11,7 +11,7 @@ my/
 *.pyd
 
 # Database files
-# src/database/growbak.db
+src/database/growbak.db
 src/database/growbak.sqbpro
 git 
 # Virtual environments
