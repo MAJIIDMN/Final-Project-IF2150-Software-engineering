@@ -1,6 +1,6 @@
 import flet as ft
 import random
-from components.shared import create_sidebar
+from views.order.shared import create_sidebar
 
 def DateAndTimeView(page, order_state):
     

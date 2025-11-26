@@ -1,5 +1,5 @@
 import flet as ft
-from components.shared import create_sidebar
+from views.order.shared import create_sidebar
 
 def NavigationView(page, order_state):
     def call_collector(e):
