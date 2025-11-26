@@ -2,6 +2,7 @@ import flet as ft
 import re
 from controllers.account_controller import AccountController
 from models.state import AppState
+from views.components.Alert import create_alert_dialog as Alert
 
 acc = AccountController()
 state = AppState()
@@ -25,11 +26,6 @@ def main(page: ft.Page):
     page.fonts = fonts
     page.theme = ft.Theme(font_family="Poppins")
     page.update()
-
-    # Hitung ukuran font responsif berdasarkan window
-    def get_responsive_size(base_size):
-        width_ratio = page.window_width / 1440  # 1440 adalah base width
-        return base_size * width_ratio * 1.2  # 1.2 = 20% lebih besar
 
     # Variabel untuk menyimpan data
     email = ft.Ref[ft.TextField]()
@@ -123,21 +119,14 @@ def main(page: ft.Page):
         def close_dialog(e):
             dialog.open = False
             page.update()
-            page.clean()
-            page.home_main(page)
         
-        dialog = ft.AlertDialog(
-            title=ft.Text("Login Successful!", weight=ft.FontWeight.BOLD, color="#1e8c45"),
-            content=ft.Text(f"Selamat datang, {username}!", color="#1e8c45"),
-            actions=[
-                ft.TextButton("OK", on_click=close_dialog, style=ft.ButtonStyle(color="#1e8c45"))
-            ],
-            bgcolor="#ffffff",
-        )
+        dialog = Alert("Berhasil", f"Selamat datang, {username}!", on_ok=close_dialog)
         page.dialog = dialog
         page.overlay.append(dialog)
         dialog.open = True
         page.update()
+        page.clean()
+        page.home_main(page)
     
     # Left side - Image
     right_side = ft.Container(
@@ -145,51 +134,45 @@ def main(page: ft.Page):
             src="img/login_image.png",
             fit=ft.ImageFit.COVER,
         ),
-        width=get_responsive_size(500),
+        width=500,
         border_radius=ft.border_radius.only(top_left=20, bottom_left=20, top_right=20, bottom_right=20),
         clip_behavior=ft.ClipBehavior.HARD_EDGE,
     )
     
     # Right side - Form
     left_side = ft.Container(
-        content=ft.Column(
+        content=ft.Stack(
             [
-                # Logo
-               ft.Container(
-                    content=ft.Image(
-                        src="img/logo.png",
-                        width=get_responsive_size(200),
-                        height=get_responsive_size(100),
-                    ),
-                    alignment=ft.alignment.bottom_left,
-                    padding=ft.padding.only(left=60),
-                ), 
                 # Form content
                 ft.Container(
                     content=ft.Column(
                         [
-                            ft.Text("Login", size=get_responsive_size(36), weight=ft.FontWeight.BOLD, font_family="PoppinsSBold", color="#000000"),
+                            ft.Container(height = 20),
+                            ft.Text("Login", size=36, weight=ft.FontWeight.BOLD, font_family="PoppinsSBold", color="#000000"),
                             ft.Text(
                                 "Login to access your travelwise account",
-                                size=get_responsive_size(13),
+                                size=13,
                                 color="#313131",
                                 opacity=0.75,
                             ),
-                            ft.Container(height=get_responsive_size(30)),
+                            ft.Container(height=30),
                             
                             # Email field
                             ft.TextField(
                                 ref=email,
-                                label="Email / Username",
+                                label="Email",
                                 border_color="#e0e0e0",
                                 focused_border_color="#1e8c45",
-                                height=get_responsive_size(65),
-                                text_style=ft.TextStyle(color="#000000", size=get_responsive_size(18)),
+                                height=65,
+                                text_style=ft.TextStyle(color="#000000"),
                                 cursor_color="#000000",
-                                label_style=ft.TextStyle(color="#c2c2c2", size=get_responsive_size(16)),
+                                label_style=ft.TextStyle(color="#c2c2c2"),
                                 on_focus=lambda e: on_focus(e, email),
                                 on_blur=lambda e: on_blur_label(e, email),
-                            ),                            
+                            ),
+                            
+                            ft.Container(height=15),
+                            
                             # Password field
                             ft.TextField(
                                 ref=password,
@@ -198,15 +181,15 @@ def main(page: ft.Page):
                                 can_reveal_password=True,
                                 border_color="#e0e0e0",
                                 focused_border_color="#1e8c45",
-                                height=get_responsive_size(65),
-                                text_style=ft.TextStyle(color="#000000", size=get_responsive_size(18)),
+                                height=65,
+                                text_style=ft.TextStyle(color="#000000"),
                                 cursor_color="#000000",
-                                label_style=ft.TextStyle(color="#c2c2c2", size=get_responsive_size(16)),
+                                label_style=ft.TextStyle(color="#c2c2c2"),
                                 on_focus=lambda e: on_focus(e, password),
                                 on_blur=lambda e: on_blur_label(e, password),
                             ),
                             
-                            ft.Container(height=get_responsive_size(10)),
+                            ft.Container(height=10),
                             
                             # Remember me and Forgot password
                             ft.Row(
@@ -215,27 +198,19 @@ def main(page: ft.Page):
                                         ref=checkbox,
                                         label="Remember me",
                                         on_change=on_checkbox_change,
-                                        label_style=ft.TextStyle(
-                                            color="#000000",
-                                            size=get_responsive_size(16),
-                                            font_family = "Poppins",
-                                        ),
                                     ),
                                     ft.TextButton(
                                         "Forgot Password",
                                         on_click=go_to_forgot_password,
                                         style=ft.ButtonStyle(
                                             color="#d32f2f",
-                                            text_style=ft.TextStyle(size=get_responsive_size(16), 
-                                            font_family="Poppins",
-                                            ),
                                         ),
                                     ),
                                 ],
                                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                             ),
                             
-                            ft.Container(height=get_responsive_size(5)),
+                            ft.Container(height=5),
                             
                             # Login button
                             ft.ElevatedButton(
@@ -244,26 +219,25 @@ def main(page: ft.Page):
                                 bgcolor="#1e8c45",
                                 color="white",
                                 width=float('inf'),
-                                height=get_responsive_size(55),
+                                height=55,
                                 style=ft.ButtonStyle(
                                     shape=ft.RoundedRectangleBorder(radius=8),
-                                    text_style=ft.TextStyle(font_family="PoppinsBold", size=get_responsive_size(16)),
+                                    text_style=ft.TextStyle(font_family="PoppinsBold", size=16),
                                 ),
                             ),
                             
-                            ft.Container(height=get_responsive_size(5)),
+                            ft.Container(height=5),
                             
                             # Sign up link
                             ft.Row(
                                 [
-                                    ft.Text("Don't have an account?", size=get_responsive_size(13), color="#666666", font_family="Poppins"),
+                                    ft.Text("Don't have an account?", size=13, color="#666666", font_family="Poppins"),
                                     ft.TextButton(
                                         "Sign up",
                                         on_click=go_to_signup,
                                         style=ft.ButtonStyle(
                                             color="#d32f2f",
                                             padding=0,
-                                            text_style=ft.TextStyle(size=get_responsive_size(14), font_family="PoppinsBold"),
                                         ),
                                     ),
                                 ],
@@ -271,21 +245,24 @@ def main(page: ft.Page):
                                 spacing=5,
                             ),
                         ],
-                        spacing=get_responsive_size(12),
+                        spacing=12,
                         scroll=ft.ScrollMode.AUTO,
                         expand=True,
                     ),
-                    padding=ft.padding.only(
-                        left=get_responsive_size(60), 
-                        right=get_responsive_size(60), 
-                        top=get_responsive_size(20), 
-                        bottom=get_responsive_size(40)
+                    padding=ft.padding.only(left=60, right=60, top=60, bottom=40),
+                ),
+                
+                # Logo on top right
+                ft.Container(
+                    content=ft.Image(
+                        src="img/logo.png",
+                        width=200,
+                        height=200,
                     ),
+                    right=670,
+                    top=-70,
                 ),
             ],
-            spacing=0,
-            alignment=ft.MainAxisAlignment.START,
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         ),
         expand=1,
     )
@@ -300,7 +277,7 @@ def main(page: ft.Page):
             alignment=ft.MainAxisAlignment.CENTER,
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
         ),
-        padding=get_responsive_size(20),
+        padding=50,
         alignment=ft.alignment.center,
     )
     
