@@ -2,6 +2,7 @@ import flet as ft
 import re
 from controllers.account_controller import AccountController
 from models.state import AppState
+from views.components.Alert import create_alert_dialog as Alert
 
 acc = AccountController()
 state = AppState()
@@ -118,21 +119,14 @@ def main(page: ft.Page):
         def close_dialog(e):
             dialog.open = False
             page.update()
-            page.clean()
-            page.home_main(page)
         
-        dialog = ft.AlertDialog(
-            title=ft.Text("Login Successful!", weight=ft.FontWeight.BOLD, color="#1e8c45"),
-            content=ft.Text(f"Selamat datang, {username}!", color="#1e8c45"),
-            actions=[
-                ft.TextButton("OK", on_click=close_dialog, style=ft.ButtonStyle(color="#1e8c45"))
-            ],
-            bgcolor="#ffffff",
-        )
+        dialog = Alert("Berhasil", f"Selamat datang, {username}!", on_ok=close_dialog)
         page.dialog = dialog
         page.overlay.append(dialog)
         dialog.open = True
         page.update()
+        page.clean()
+        page.home_main(page)
     
     # Left side - Image
     right_side = ft.Container(
