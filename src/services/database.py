@@ -39,9 +39,20 @@ class DatabaseService:
                 password TEXT,
                 email TEXT UNIQUE,
                 phonenumber TEXT UNIQUE,
-                role TEXT, -- 'client', 'wc', 'admin'
+                role TEXT,
                 point INTEGER DEFAULT 0,
                 kecamatan TEXT
+            )
+        """)
+
+        # Tabel Waste Collectors
+        self.cursor.execute("""
+            CREATE TABLE IF NOT EXISTS wc (
+                id TEXT PRIMARY KEY,
+                name TEXT,
+                experience TEXT,
+                vehicle TEXT,
+                platenumber TEXT UNIQUE            
             )
         """)
 
@@ -191,6 +202,12 @@ class DatabaseService:
         file_path = f"src/database/file/{table}_export.csv"
         df = pd.read_sql_query(query, self.conn)
         df.to_csv(file_path, index=False)
+
+    def get_random_row(self, table: str):
+        """Mengambil satu baris acak dari tabel tertentu."""
+        query = f"SELECT * FROM {table} ORDER BY RANDOM() LIMIT 1"
+        self.cursor.execute(query)
+        return self.cursor.fetchone()
 
     def close(self):
         self.conn.close()

@@ -64,9 +64,9 @@ class PointMart(PointMartdb):
                     # Update database
                     db_service.update_point(username, point)
                     db_service.update_stock_hadiah(hadiah_id, hadiah['stock'])
-                    return print("Redeem berhasil!")
+                    return True
                 else:
-                    return print("Redeem gagal: Poin tidak cukup atau stock habis.")
+                    return False
         return False
     def avail_hadiah_list(self):
         row = db_service.load_all("hadiah")

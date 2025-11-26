@@ -89,13 +89,15 @@ def main(page: ft.Page):
             password.current.error_text = "Email atau password salah"
             page.update()
             return
+        
         if checkbox.current.value:
             state.change_state(True, True, user.username, user.role)
         else:
             state.change_state(True, False, user.username, user.role)
         state.save_state()
-        page.clean()   
-        go_to_home(None)
+        
+        # Tampilkan dialog success
+        show_success_dialog(user.username)
 
     # Fungsi navigasi ke Sign Up
     def go_to_signup(e):
@@ -110,6 +112,27 @@ def main(page: ft.Page):
     def go_to_home(e):
         page.clean()
         page.home_main(page)
+    
+    # Fungsi tampilkan dialog success
+    def show_success_dialog(username):
+        def close_dialog(e):
+            dialog.open = False
+            page.update()
+            page.clean()
+            page.home_main(page)
+        
+        dialog = ft.AlertDialog(
+            title=ft.Text("Login Successful!", weight=ft.FontWeight.BOLD, color="#1e8c45"),
+            content=ft.Text(f"Selamat datang, {username}!", color="#1e8c45"),
+            actions=[
+                ft.TextButton("OK", on_click=close_dialog, style=ft.ButtonStyle(color="#1e8c45"))
+            ],
+            bgcolor="#ffffff",
+        )
+        page.dialog = dialog
+        page.overlay.append(dialog)
+        dialog.open = True
+        page.update()
     
     # Left side - Image
     right_side = ft.Container(
