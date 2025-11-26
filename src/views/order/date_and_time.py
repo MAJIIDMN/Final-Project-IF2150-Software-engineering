@@ -221,10 +221,36 @@ def DateAndTimeView(page, order_state):
             width=380,
         )
     
+    # ================================================ #
     card_height = page.window_height - 140 if page.window_height else 680
 
-    stops = getattr(order_state, 'stops', None)
-    if not stops:
+    # helper: generate levels distribution
+    def _generate_levels(n):
+        if random.random() < 0.12:
+            chosen_level = random.choice(["Fast", "Moderate", "Slow"])
+            return [chosen_level] * n
+        if n == 1:
+            return [random.choice(["Fast", "Moderate", "Slow"])]
+        if n == 2:
+            pair_options = [["Fast", "Moderate"], ["Moderate", "Slow"], ["Fast", "Slow"]]
+            chosen_pair = random.choices(pair_options, weights=[0.6,0.2,0.2], k=1)[0]
+            return [chosen_pair[0], chosen_pair[1]]
+        # n >= 3
+        base = ["Fast", "Moderate", "Slow"]
+        levels = base.copy()
+        extra = n - 3
+        for _ in range(extra):
+            levels.append(random.choices(["Fast","Moderate","Slow"], weights=[0.5,0.3,0.2], k=1)[0])
+        # group levels to keep ordering Fast -> Moderate -> Slow
+        return [l for l in levels if l == "Fast"] + [l for l in levels if l == "Moderate"] + [l for l in levels if l == "Slow"]
+
+    # helper: pick another district (not the user's)
+    def _pick_other_district(user_district, district_roads):
+        available = [d for d in district_roads.keys() if d != user_district]
+        return random.choice(available) if available else None
+
+    # helper: generate stops and return (stops_list, chosen_district)
+    def _generate_stops(user_district, user_address):
         sample_locations = [
             'Jl. Musik VII No.23b',
             'Jl. Taman Suri I 001/004 No.12',
@@ -258,35 +284,17 @@ def DateAndTimeView(page, order_state):
                 'Jl. Soekarno Hatta No.150',
             ],
         }
-        user_district = getattr(order_state, 'district', None)
-        user_address = getattr(order_state, 'address', None)
-        n = random.randint(1, 4)
 
-        if random.random() < 0.12:
-            chosen_level = random.choice(["Fast", "Moderate", "Slow"])
-            levels = [chosen_level] * n
-        else:
-            levels = []
-            if n == 1:
-                levels = [random.choice(["Fast", "Moderate", "Slow"])]
-            elif n == 2:
-                pair_options = [["Fast", "Moderate"], ["Moderate", "Slow"], ["Fast", "Slow"]]
-                chosen_pair = random.choices(pair_options, weights=[0.6,0.2,0.2], k=1)[0]
-                levels = [chosen_pair[0], chosen_pair[1]]
-            else:
-                base = ["Fast", "Moderate", "Slow"]
-                levels = base.copy()
-                extra = n - 3
-                for _ in range(extra):
-                    levels.append(random.choices(["Fast","Moderate","Slow"], weights=[0.5,0.3,0.2], k=1)[0])
-                levels = [l for l in levels if l == "Fast"] + [l for l in levels if l == "Moderate"] + [l for l in levels if l == "Slow"]
+        n = random.randint(1, 4)
+        levels = _generate_levels(n)
 
         start_hour = random.randint(2, 8)
         start_min = random.choice([0, 15, 30, 45])
         current_minutes = start_hour * 60 + start_min
         speed_offset_ranges = {"Fast": (8, 12), "Moderate": (18, 35), "Slow": (45, 90)}
 
-        stops = []
+        stops_local = []
+        chosen_district_local = None
         for i in range(n):
             level = levels[i] if i < len(levels) else levels[-1]
             offset = random.randint(*speed_offset_ranges[level])
@@ -296,17 +304,17 @@ def DateAndTimeView(page, order_state):
             time2_minutes = current_minutes + later
             time2 = f"{(time2_minutes // 60) % 24:02d}:{time2_minutes % 60:02d}"
 
-            if user_district and user_district in district_roads:
-                loc1 = random.choice(district_roads[user_district])
+            # pick a different district than the user's and select a road from it
+            other = _pick_other_district(user_district, district_roads)
+            if other:
+                chosen_district_local = other if chosen_district_local is None else chosen_district_local
+                loc1 = random.choice(district_roads[other])
             else:
                 loc1 = random.choice(sample_locations)
 
-            if user_address and user_address.strip():
-                loc2 = user_address
-            else:
-                loc2 = random.choice(sample_locations)
+            loc2 = user_address if user_address and user_address.strip() else random.choice(sample_locations)
 
-            stops.append({
+            stops_local.append({
                 'id': f'ID {random.randint(1000,9999)}-{random.randint(1000,9999)}',
                 'location1': loc1,
                 'location2': loc2,
@@ -314,13 +322,22 @@ def DateAndTimeView(page, order_state):
                 'time2': time2,
                 'status_text': None,
                 'subdistrict': level,
+                'origin_district': other,
             })
 
         def _time_to_minutes(t):
             h, m = t.split(':')
             return int(h) * 60 + int(m)
 
-        stops.sort(key=lambda s: _time_to_minutes(s['time1']))
+        stops_local.sort(key=lambda s: _time_to_minutes(s['time1']))
+        return stops_local, chosen_district_local
+
+    chosen_district = ""
+    stops = getattr(order_state, 'stops', None)
+    if not stops:
+        user_district = getattr(order_state, 'district', None)
+        user_address = getattr(order_state, 'address', None)
+        stops, chosen_district = _generate_stops(user_district, user_address)
 
     stop_controls = []
     if not hasattr(order_state, 'show_collector'):
@@ -329,6 +346,7 @@ def DateAndTimeView(page, order_state):
         order_state.selected_collector_data = None
     order_state.show_collector = True
 
+    # ================================================ #
     def update_collector_data(s):
         def _on_click(e):
             collector = s.get('collector', {
@@ -339,7 +357,18 @@ def DateAndTimeView(page, order_state):
                 'vehicle': 'Motorcycle',
                 'license_plate': 'D 9999 FF',
             })
-            order_state.selected_collector_data = collector
+            order_state.selected_collector = collector
+
+            # record which origin district the user clicked
+            order_state.last_clicked_district = s.get('origin_district')
+
+            # optional: quick UI feedback
+            try:
+                page.snack_bar = ft.SnackBar(ft.Text(f"Selected origin district: {order_state.last_clicked_district}"))
+                page.snack_bar.open = True
+            except Exception:
+                pass
+
             order_state.show_collector = True
             page.update()
         return _on_click
