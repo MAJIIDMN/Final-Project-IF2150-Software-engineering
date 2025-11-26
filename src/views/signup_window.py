@@ -1,7 +1,8 @@
 import flet as ft
 import re
 from controllers.account_controller import AccountController
-from views.components.Alert import create_alert_dialog as alert
+from models.state import AppState
+from views.components.Alert import create_alert_dialog as Alert
 
 fonts = {
     "Poppins": "fonts/poppins/Poppins-Regular.ttf",
@@ -10,6 +11,8 @@ fonts = {
 }
 
 acc = AccountController()  
+
+
 
 def main(page: ft.Page):
     page.title = "GrowBak - Sign Up"
@@ -60,7 +63,21 @@ def main(page: ft.Page):
     def go_to_login(e):
         page.clean()
         page.login_main(page)
-    
+
+    def close_dialog(e, dialog):
+        dialog.open = False
+        page.update()
+
+    # Fungsi tampilkan dialog success
+    def show_success_dialog(username):
+        dialog = Alert("Berhasil", f"Akun berhasil didaftarkan {username}!", on_ok=lambda e: close_dialog(e, dialog))
+        page.dialog = dialog
+        page.overlay.append(dialog)
+        dialog.open = True
+        page.update()
+        page.clean()
+        page.home_main(page)
+
     # Fungsi create account
     def create_account(e):
         # Reset error messages
@@ -139,57 +156,32 @@ def main(page: ft.Page):
                 last_name.current.value,
                 email.current.value,
                 phone.current.value,
-                address.current.value,
+                address.current.value,  # kecamatan
                 password.current.value,
                 username.current.value,
                 role="client"
             )
 
-            # Tampilkan dialog sukses
-            def close_dialog(e):
-                dialog.open = False
-                page.update()
-                # Reset form
-                first_name.current.value = ""
-                last_name.current.value = ""
-                username.current.value = ""
-                email.current.value = ""
-                phone.current.value = ""
-                address.current.value = ""
-                password.current.value = ""
-                confirm_password.current.value = ""
-                page.update()
-
             if not newUser:
-                dialog = ft.AlertDialog(
-                    title=ft.Text("Gagal!"),
-                    content=ft.Text(message),
-                    actions=[
-                        ft.TextButton("OK", on_click=close_dialog)
-                    ]
-                )
+                dialog = Alert("Gagal!", message, on_ok=lambda e: close_dialog(e, dialog))
                 page.dialog = dialog
                 page.overlay.append(dialog)
                 dialog.open = True
                 page.update()
                 return
             
+            show_success_dialog(username.current.value)
             
-            dialog = ft.AlertDialog(
-                title=ft.Text("Berhasil!"),
-                content=ft.Text("Account berhasil dibuat!"),
-                actions=[
-                    ft.TextButton("OK", on_click=close_dialog)
-                ]
-            )
-            # Belum handle ketika orang bernama sama => username sama => tidak bisa diinput karena username harus unik
-
-            page.dialog = dialog
-            page.overlay.append(dialog)
-            dialog.open = True
+            # Reset form
+            first_name.current.value = ""
+            last_name.current.value = ""
+            username.current.value = ""
+            email.current.value = ""
+            phone.current.value = ""
+            address.current.value = ""
+            password.current.value = ""
+            confirm_password.current.value = ""
             page.update()
-            page.clean()
-            page.point_mart_main(page)
     
     # Left side - Image
     left_side = ft.Container(

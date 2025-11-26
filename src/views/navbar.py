@@ -22,7 +22,7 @@ def create_navbar(page, active_page="home"):
     
     def go_to_home(e):
         page.clean()
-        page.home_main(page) # Nanti diubah ke home
+        page.home_main(page)
     
     def go_to_order(e):
         page.clean()
@@ -33,6 +33,10 @@ def create_navbar(page, active_page="home"):
     def go_to_control(e):
         page.clean()
         page.admin_control_main(page)
+
+    def go_to_info(e):
+        page.clean()
+        page.info_main(page)
     
     # Fungsi untuk membuat style text sesuai active page
     def get_nav_text_style(page_name):
@@ -223,6 +227,11 @@ def create_navbar(page, active_page="home"):
                             "Home", 
                             style=ft.ButtonStyle(color="white", text_style=get_nav_text_style("home")),
                             on_click=go_to_home,
+                            ),
+                        ft.TextButton(
+                            "Info Sampah", 
+                            style=ft.ButtonStyle(color="white", text_style=get_nav_text_style("info")),
+                            on_click=go_to_info,
                             ),
                         ft.TextButton(
                             "Order", 
