@@ -98,6 +98,7 @@ def GeneralDetailsView(page, order_state):
                 field.value = ""
             field.read_only = is_none
             field.bgcolor = "#f5f5f5" if is_none else "white"
+            field.hint_text = "-" if is_none else "5"
             field.update()
 
         # perbarui opsi dropdown secara dinamis agar tipe yang sudah dipilih
@@ -372,7 +373,7 @@ def GeneralDetailsView(page, order_state):
     weight_input = ft.TextField(
         label="",
         value=order_state.weight_1 if getattr(order_state, "weight_1", "") else "",
-        hint_text="5",
+        hint_text="-",
         width=200,
         on_change=weight_changed,
         border_color="#e0e0e0",
@@ -386,7 +387,7 @@ def GeneralDetailsView(page, order_state):
     weight_input_2 = ft.TextField(
         label="",
         value=order_state.weight_2 if getattr(order_state, "weight_2", "") else "",
-        hint_text="5",
+        hint_text="-",
         width=200,
         on_change=weight_changed,
         border_color="#e0e0e0",
@@ -399,7 +400,7 @@ def GeneralDetailsView(page, order_state):
     weight_input_3 = ft.TextField(
         label="",
         value=order_state.weight_3 if getattr(order_state, "weight_3", "") else "",
-        hint_text="5",
+        hint_text="-",
         width=200,
         on_change=weight_changed,
         border_color="#e0e0e0",
