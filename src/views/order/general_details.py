@@ -98,7 +98,7 @@ def GeneralDetailsView(page, order_state):
                 field.value = ""
             field.read_only = is_none
             field.bgcolor = "#f5f5f5" if is_none else "white"
-            field.hint_text = "-" if is_none else "5"
+            field.hint_text = "-" if is_none else "0"
             field.update()
 
         # perbarui opsi dropdown secara dinamis agar tipe yang sudah dipilih
