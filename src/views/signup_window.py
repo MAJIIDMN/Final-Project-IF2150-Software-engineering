@@ -1,6 +1,7 @@
 import flet as ft
 import re
 from controllers.account_controller import AccountController
+from views.components.Alert import create_alert_dialog as alert
 
 fonts = {
     "Poppins": "fonts/poppins/Poppins-Regular.ttf",

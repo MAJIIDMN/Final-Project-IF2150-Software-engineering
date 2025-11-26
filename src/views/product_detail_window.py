@@ -2,6 +2,7 @@ import flet as ft
 from views.navbar import create_navbar
 from models.PointMart import PointMart
 from models.state import AppState
+from views.components.Alert import create_alert_dialog as Alert
 
 point_mart = PointMart()
 
@@ -82,23 +83,14 @@ def main(page: ft.Page, product_data=None):
 
     def on_redeem(e):
         if product_data.get("stock", 0) <= 0:
-            dialog = ft.AlertDialog(
-                title=ft.Text("Perhatian"),
-                content=ft.Text("Stok produk habis"),
-                actions=[ft.TextButton("OK", on_click=lambda x: (setattr(dialog, 'open', False), page.update()))],
-            )
-            page.dialog = dialog
+            dialog = Alert("Gagal", "Stok produk habis")
             page.overlay.append(dialog)
             dialog.open = True
             page.update()
             return
         if not selected_size.current:
             # Show error dialog
-            dialog = ft.AlertDialog(
-                title=ft.Text("Perhatian"),
-                content=ft.Text("Pilih ukuran terlebih dahulu"),
-                actions=[ft.TextButton("OK", on_click=lambda x: (setattr(dialog, 'open', False), page.update()))],
-            )
+            dialog = Alert("Perhatian", "Silakan pilih ukuran produk terlebih dahulu.")
             page.dialog = dialog
             dialog.open = True
             page.update()
@@ -106,17 +98,9 @@ def main(page: ft.Page, product_data=None):
             valid = point_mart.redeem_hadiah(AppState.username, product_data["id"], point_mart.load_hadiah())
             if valid:
                 page.product_detail_main(page, product_data)
-                dialog = ft.AlertDialog(
-                    title=ft.Text("Berhasil!"),
-                    content=ft.Text("Produk berhasil ditukarkan!"),
-                actions=[ft.TextButton("OK", on_click=lambda x: (setattr(dialog, 'open', False), page.update(), go_back(None)))],
-            )
+                dialog = Alert("Berhasil!", "Produk berhasil ditukarkan!")
             else:
-                dialog = ft.AlertDialog(
-                    title=ft.Text("Gagal"),
-                    content=ft.Text("Poin tidak cukup untuk menukarkan produk ini."),
-                    actions=[ft.TextButton("OK", on_click=lambda x: (setattr(dialog, 'open', False), page.update()))],
-                )
+                dialog = Alert("Gagal", "Poin tidak cukup untuk menukarkan produk ini.")
             page.dialog = dialog
             page.overlay.append(dialog)
             dialog.open = True
