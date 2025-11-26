@@ -211,4 +211,3 @@ class DatabaseService:
 
     def close(self):
         self.conn.close()
-

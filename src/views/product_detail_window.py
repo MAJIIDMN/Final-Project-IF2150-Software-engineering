@@ -88,6 +88,7 @@ def main(page: ft.Page, product_data=None):
                 actions=[ft.TextButton("OK", on_click=lambda x: (setattr(dialog, 'open', False), page.update()))],
             )
             page.dialog = dialog
+            page.overlay.append(dialog)
             dialog.open = True
             page.update()
             return
@@ -102,16 +103,22 @@ def main(page: ft.Page, product_data=None):
             dialog.open = True
             page.update()
         else:
-            point_mart.redeem_hadiah(AppState.username, product_data["id"], point_mart.load_hadiah())
-            product_data["stock"] = max(product_data.get("stock", 0) - 1, 0)
-            page.clean()
-            page.product_detail_main(page, product_data)
-            dialog = ft.AlertDialog(
-                title=ft.Text("Berhasil!"),
-                content=ft.Text("Produk berhasil ditukarkan!"),
+            valid = point_mart.redeem_hadiah(AppState.username, product_data["id"], point_mart.load_hadiah())
+            if valid:
+                page.product_detail_main(page, product_data)
+                dialog = ft.AlertDialog(
+                    title=ft.Text("Berhasil!"),
+                    content=ft.Text("Produk berhasil ditukarkan!"),
                 actions=[ft.TextButton("OK", on_click=lambda x: (setattr(dialog, 'open', False), page.update(), go_back(None)))],
             )
+            else:
+                dialog = ft.AlertDialog(
+                    title=ft.Text("Gagal"),
+                    content=ft.Text("Poin tidak cukup untuk menukarkan produk ini."),
+                    actions=[ft.TextButton("OK", on_click=lambda x: (setattr(dialog, 'open', False), page.update()))],
+                )
             page.dialog = dialog
+            page.overlay.append(dialog)
             dialog.open = True
             page.update()
 
