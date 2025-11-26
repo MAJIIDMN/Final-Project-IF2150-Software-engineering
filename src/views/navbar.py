@@ -30,6 +30,9 @@ def create_navbar(page, active_page="home"):
             page.order_main(page)
         else:
             page.login_main(page)
+    def go_to_control(e):
+        page.clean()
+        page.admin_control_main(page)
     
     # Fungsi untuk membuat style text sesuai active page
     def get_nav_text_style(page_name):
@@ -133,8 +136,75 @@ def create_navbar(page, active_page="home"):
                             ),
                         ],
                     )
+    profil_admin = ft.PopupMenuButton(
+                        icon=ft.Icons.PERSON,
+                        icon_color="white",
+                        bgcolor="#ffffff",
+                        items=[
+                            ft.PopupMenuItem(
+                                content=ft.Row(
+                                    [
+                                        ft.Icon(ft.Icons.PERSON, color="#145c39", size=30),
+                                        ft.Column(
+                                            [
+                                                ft.Text(
+                                                    app_state.username if app_state.username else "Guest",
+                                                    size=14,
+                                                    weight=ft.FontWeight.BOLD,
+                                                    color="#000000"
+                                                ),
+                                                ft.Text(
+                                                    app_state.role if app_state.role else "Guest",
+                                                    size=11,
+                                                    color="#000000"
+                                                ),
+                                            ],
+                                            spacing=2,
+                                        ),
+                                    ],
+                                    spacing=10,
+                                ),
+                            ),
+                            ft.PopupMenuItem(),
+                            ft.PopupMenuItem(
+                                content=ft.Row(
+                                    [
+                                        ft.Icon(ft.Icons.STAR, color="#145c39", size=20),
+                                        ft.Text(f"{point} Points", size=13, color="#000000"),
+                                    ],
+                                    spacing=5,
+                                ),
+                                on_click=go_to_point_mart,
+                            ),
+                            ft.PopupMenuItem(),
+                            ft.PopupMenuItem(
+                                content=ft.Row(
+                                    [
+                                        ft.Icon(ft.Icons.CONTROL_POINT, color="#145c39", size=20),
+                                        ft.Text(f"Control", size=13, color="#000000"),
+                                    ],
+                                    spacing=5,
+                                ),
+                                on_click=go_to_control,
+                            ),
+                            ft.PopupMenuItem(),
+                            ft.PopupMenuItem(
+                                content=ft.Row(
+                                    [
+                                        ft.Icon(ft.Icons.LOGOUT, color="#145c39", size=20),
+                                        ft.Text("Logout", size=13, color="#000000"),
+                                    ],
+                                    spacing=5,
+                                ),
+                                on_click=logout,
+                            ),
+                        ],
+                    )
     if AppState.is_logged_in:
-        profil = profil_popup
+        if app_state.role == "Admin":
+            profil = profil_admin
+        else:
+            profil = profil_popup
     
     navbar = ft.Container(
         content=ft.Row(
