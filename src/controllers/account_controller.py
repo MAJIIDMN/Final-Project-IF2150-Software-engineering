@@ -128,8 +128,9 @@ class AccountController:
         else:
             return None
 
-    def register_user(self, first, last, email, phonenumber, kecamatan, password, role="client"):
-        username = f'{first}{last}'.lower()
+    def register_user(self, first, last, email, phonenumber, kecamatan, password, username=None, role="client"):
+        if username is None:
+            username = f'{first}{last}'.lower()
         new_user = User(username, password, email, phonenumber, kecamatan)
         query = "INSERT INTO users (id, username, password, email, phonenumber, role, kecamatan) VALUES (?, ?, ?, ?, ?, ?, ?)"
         success, message = self.db.execute_query(query, (new_user.id, username, password, email, phonenumber, role, kecamatan))

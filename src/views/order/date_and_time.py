@@ -17,14 +17,14 @@ def DateAndTimeView(page, order_state):
         page.go("/order/navigation")
     
     # Stop point cards (timeline-style)
-    def create_stop_card(stop_id, location, time, status_color=None, status_text=None, subdistrict=None, time2=None, location2=None, on_click=None):
-        duration_colors = {
+    def create_stop_card(stop_id, loc1, loc2, time1, time2, wait_time, wc_id, on_click=None):
+        wait_colors = {
             "Fast": "#2e7d32",
             "Moderate": "#ff9800",
             "Slow": "#ff5722",
         }
-        badge_text = subdistrict if subdistrict else (status_text if status_text else None)
-        badge_color = duration_colors.get(badge_text, "#2e7d32") if badge_text else None
+        badge_text = wait_time
+        badge_color = wait_colors.get(badge_text, "#2e7d32") if badge_text else None
 
         status_badge = None
         if badge_text:
@@ -43,18 +43,18 @@ def DateAndTimeView(page, order_state):
         # row 1: time label placed in the timeline column
         time_row = ft.Row(
             controls=[
-                ft.Container(content=ft.Text(time, size=12, color="#757575"), width=timeline_col_width, alignment=ft.alignment.center),
+                ft.Container(content=ft.Text(time1, size=12, color="#757575"), width=timeline_col_width, alignment=ft.alignment.center),
                 ft.Container(width=12),
                 ft.Container(),
             ],
         )
 
-        # row 2: top dot aligned with top location
+        # row 2: top dot aligned with top loc1
         top_row = ft.Row(
             controls=[
                 ft.Container(content=ft.Container(width=dot_size, height=dot_size, bgcolor="#212121", border_radius=dot_size), width=timeline_col_width, alignment=ft.alignment.center),
                 ft.Container(width=12),
-                ft.Container(content=ft.Text(location, size=15, color="#212121"), alignment=ft.alignment.center_left),
+                ft.Container(content=ft.Text(loc1, size=15, color="#212121"), alignment=ft.alignment.center_left),
             ],
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
         )
@@ -68,27 +68,26 @@ def DateAndTimeView(page, order_state):
             ],
         )
 
-        # row 4: bottom dot aligned with bottom location (may differ via `location2`)
-        bottom_loc_text = location2 if location2 is not None else location
+        # row 4: bottom dot aligned with bottom location (may differ via `loc2`)
         bottom_row = ft.Row(
             controls=[
                 ft.Container(content=ft.Container(width=dot_size, height=dot_size, bgcolor="#212121", border_radius=dot_size), width=timeline_col_width, alignment=ft.alignment.center),
                 ft.Container(width=12),
-                ft.Container(content=ft.Text(bottom_loc_text, size=15, color="#212121"), alignment=ft.alignment.center_left),
+                ft.Container(content=ft.Text(loc2, size=15, color="#212121"), alignment=ft.alignment.center_left),
             ],
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
         )
 
-        bottom_time_value = time2 if time2 is not None else time
         bottom_time_row = ft.Row(
             controls=[
-                ft.Container(content=ft.Text(bottom_time_value, size=12, color="#757575"), width=timeline_col_width, alignment=ft.alignment.center),
+                ft.Container(content=ft.Text(time2, size=12, color="#757575"), width=timeline_col_width, alignment=ft.alignment.center),
                 ft.Container(width=12),
                 ft.Container(),
             ],
         )
 
         return ft.Container(
+            # key=ret_id,
             content=ft.Column(
                 controls=[
                     ft.Row(
@@ -117,8 +116,8 @@ def DateAndTimeView(page, order_state):
         )
     
     # Build collector card dynamically from `order_state.selected_collector_data`
-    def build_collector_card():
-        data = db.get_random_row("wc")
+    def build_collector_card(id):
+        data = getattr(order_state, 'selected_collector_data', None)
         visible = getattr(order_state, 'show_collector', False)
         if not visible:
             return ft.Container()
@@ -292,7 +291,7 @@ def DateAndTimeView(page, order_state):
         n = random.randint(1, 4)
         levels = _generate_levels(n)
 
-        start_hour = random.randint(2, 8)
+        start_hour = random.randint(8, 15)
         start_min = random.choice([0, 15, 30, 45])
         current_minutes = start_hour * 60 + start_min
         speed_offset_ranges = {"Fast": (8, 12), "Moderate": (18, 35), "Slow": (45, 90)}
@@ -324,8 +323,7 @@ def DateAndTimeView(page, order_state):
                 'location2': loc2,
                 'time1': time1,
                 'time2': time2,
-                'status_text': None,
-                'subdistrict': level,
+                'wait_time': level,
                 'origin_district': other,
             })
 
@@ -351,43 +349,33 @@ def DateAndTimeView(page, order_state):
     order_state.show_collector = True
 
     # ================================================ #
-    def update_collector_data(s):
-        def _on_click(e):
-            collector = s.get('collector', {
-                'name': 'Vincent R',
-                'role': 'Waste Collector',
-                'experience': '12 years',
-                'id_number': '1234-5678',
-                'vehicle': 'Motorcycle',
-                'license_plate': 'D 9999 FF',
-            })
-            order_state.selected_collector = collector
+    def update_collector_data(id):
+        show_collector_card(id)
+        
+        # order_state.show_collector = True
+        page.update()
 
-            # record which origin district the user clicked
-            order_state.last_clicked_district = s.get('origin_district')
+    def show_collector_card(data):
+        collector_card.content = build_collector_card(data)
+        collector_card.visible = True
+        collector_card.update()
 
-            # optional: quick UI feedback
-            try:
-                page.snack_bar = ft.SnackBar(ft.Text(f"Selected origin district: {order_state.last_clicked_district}"))
-                page.snack_bar.open = True
-            except Exception:
-                pass
-
-            order_state.show_collector = True
-            page.update()
-        return _on_click
+    def hide_collector_card():
+        collector_card.visible = False
+        collector_card.update()
 
     for s in stops:
+        ret_id = s.get('id', '').replace("ID ", "", 1)
         stop_controls.append(
             create_stop_card(
-                s.get('id', 'ID'),
+                ret_id,
                 s.get('location1', ''),
+                s.get('location2', ''),
                 s.get('time1', ''),
-                status_text=s.get('status_text'),
-                subdistrict=(s.get('subdistrict') if s.get('subdistrict') is not None else (order_state.district if getattr(order_state, 'district', None) else "Fast")),
-                time2=s.get('time2'),
-                location2=s.get('location2'),
-                on_click=update_collector_data(s),
+                s.get('time2', ''),
+                s.get('wait_time', ''),
+                s.get('origin_district', ''),
+                on_click=lambda e, sid=ret_id: update_collector_data(sid),
             )
         )
         stop_controls.append(ft.Container(height=15))
@@ -432,6 +420,9 @@ def DateAndTimeView(page, order_state):
         padding=40,
     )
     
+    collector_card = ft.Container(visible=False, right=40, bottom=40)
+    collector_card.content = build_collector_card("0000-0000")
+
     # Layout with map background
     content = ft.Stack(
         controls=[
@@ -461,11 +452,7 @@ def DateAndTimeView(page, order_state):
                 spacing=0,
             ),
             # floating collector card at bottom-right
-            ft.Container(
-                content=build_collector_card(),
-                right=40,
-                bottom=40,
-            ),
+            collector_card,
         ],
         expand=True,
     )

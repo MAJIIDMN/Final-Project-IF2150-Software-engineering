@@ -2,28 +2,6 @@ import flet as ft
 from components.shared import create_sidebar
 
 def AddressView(page, order_state):
-    def file_picker_result(e):
-        if e.files and len(e.files) > 0:
-            f = e.files[0]
-            order_state.attachment = f.name
-            try:
-                attachment_label.value = f.name
-                attachment_label.color = "#000000"
-                attachment_label.update()
-            except NameError:
-                pass
-    def clear_attachment(e):
-        order_state.attachment = None
-        try:
-            attachment_label.value = "No file selected"
-            attachment_label.color = "#757575"
-            attachment_label.update()
-        except NameError:
-            pass
-    
-    file_picker = ft.FilePicker(on_result=file_picker_result)
-    page.overlay.append(file_picker)
-    
     def district_changed(e):
         order_state.district = e.control.value
     
@@ -47,11 +25,6 @@ def AddressView(page, order_state):
             return
         if not addr:
             page.snack_bar = ft.SnackBar(ft.Text("Please enter the address."))
-            page.snack_bar.open = True
-            page.update()
-            return
-        if not getattr(order_state, "attachment", None):
-            page.snack_bar = ft.SnackBar(ft.Text("Please add an attachment before continuing."))
             page.snack_bar.open = True
             page.update()
             return
@@ -107,7 +80,7 @@ def AddressView(page, order_state):
                         address_field := ft.TextField(
                             width=400,
                             value=order_state.address if order_state.address else "",
-                            hint_text="Jl. Ganesha No. 10, Lb. Siliwangi",
+                            hint_text="",
                             border_color="#e0e0e0",
                             on_change=address_changed,
                             color="#000000",
@@ -116,76 +89,14 @@ def AddressView(page, order_state):
                     spacing=5,
                 ),
                 ft.Container(height=20),
-                # Address suggestion card
-                ft.Container(
-                    content=ft.Row(
-                        controls=[
-                            ft.Container(
-                                content=ft.Icon(name=ft.Icons.MAP_OUTLINED, size=40, color="#2e7d32"),
-                                width=80,
-                                height=80,
-                                bgcolor="#e8f5e9",
-                                border_radius=8,
-                                alignment=ft.alignment.center,
-                            ),
-                            ft.Column(
-                                controls=[
-                                    ft.Text("Bandung", size=16, weight=ft.FontWeight.BOLD, color="#000000"),
-                                    ft.Text("Jl. Ganesha No. 10,\nLb. Siliwangi", size=13, color="#757575"),
-                                ],
-                                spacing=5,
-                            ),
-                        ],
-                        spacing=15,
-                    ),
-                    bgcolor="white",
-                    border=ft.border.all(1, "#e0e0e0"),
-                    border_radius=12,
-                    padding=20,
-                    width=400,
-                ),
                 ft.Container(height=30),
-                ft.Column(
-                    controls=[
-                        ft.Text("Add an attachment", size=14, color="#757575"),
-                        attachment_label := ft.Text(
-                                order_state.attachment if getattr(order_state, "attachment", None) else "No file selected",
-                                size=12,
-                                color="#757575",
-                            ),
-                        ft.Row(
-                            controls=[
-                                ft.Container(
-                                    content=ft.Icon(name=ft.Icons.ADD, color="#2e7d32"),
-                                    width=60,
-                                    height=60,
-                                    border=ft.border.all(2, "#e0e0e0"),
-                                    border_radius=8,
-                                    alignment=ft.alignment.center,
-                                    on_click=lambda e: file_picker.pick_files(allow_multiple=False),
-                                ),
-                                ft.Container(
-                                    content=ft.Icon(name=ft.Icons.IMAGE_OUTLINED, size=30, color="white"),
-                                    width=60,
-                                    height=60,
-                                    bgcolor="#4a90e2",
-                                    border_radius=8,
-                                    alignment=ft.alignment.center,
-                                    on_click=clear_attachment,
-                                ),
-                            ],
-                            spacing=10,
-                        ),
-                    ],
-                    spacing=10,
-                ),
                 ft.Container(height=20),
                 ft.Row(
                     controls=[
                         ft.Checkbox(
                             value=order_state.notify_on_arrival,
-                            fill_color="#2e7d32",
-                            check_color="white"
+                            fill_color="white",
+                            check_color="#2e7d32",
                         ),
                         ft.Text("Notify me by phone when the waste collector arrives", size=13, color="#000000"),
                     ],

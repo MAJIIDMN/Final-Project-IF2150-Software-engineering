@@ -7,19 +7,23 @@ acc_controller = AccountController()
 
 def create_navbar(page, active_page="home"):
     point = acc_controller.get_point(app_state.username)
+    
     def logout(e):
         app_state.clear_state()
         page.clean()
         page.login_main(page)
+    
     def go_to_point_mart(e):
         page.clean()
         if AppState.is_logged_in:
             page.point_mart_main(page)
         else:
             page.login_main(page)
+    
     def go_to_home(e):
         page.clean()
         page.home_main(page) # Nanti diubah ke home
+    
     def go_to_order(e):
         page.clean()
         if AppState.is_logged_in:
@@ -33,6 +37,104 @@ def create_navbar(page, active_page="home"):
             return ft.TextStyle(size=20, weight=ft.FontWeight.BOLD, font_family="PoppinsBold")
         else:
             return ft.TextStyle(size=20, font_family="Poppins")
+        
+    profil = ft.PopupMenuButton(
+                        icon=ft.Icons.PERSON,
+                        icon_color="white",
+                        bgcolor="#ffffff",
+                        items=[
+                            ft.PopupMenuItem(
+                                content=ft.Row(
+                                    [
+                                        ft.Icon(ft.Icons.PERSON, color="#145c39", size=30),
+                                        ft.Column(
+                                            [
+                                                ft.Text(
+                                                    "Guest",
+                                                    size=14,
+                                                    weight=ft.FontWeight.BOLD,
+                                                    color="#000000"
+                                                ),
+                                                ft.Text(
+                                                    "Guest",
+                                                    size=11,
+                                                    color="#000000"
+                                                ),
+                                            ],
+                                            spacing=2,
+                                        ),
+                                    ],
+                                    spacing=10,
+                                ),
+                            ),
+                            ft.PopupMenuItem(),
+                            ft.PopupMenuItem(
+                                content=ft.Row(
+                                    [
+                                        ft.Icon(ft.Icons.LOGIN, color="#145c39", size=20),
+                                        ft.Text("Login", size=13, color="#000000"),
+                                    ],
+                                    spacing=5,
+                                ),
+                                on_click=logout,
+                            ),
+                        ],
+                    )
+    profil_popup = ft.PopupMenuButton(
+                        icon=ft.Icons.PERSON,
+                        icon_color="white",
+                        bgcolor="#ffffff",
+                        items=[
+                            ft.PopupMenuItem(
+                                content=ft.Row(
+                                    [
+                                        ft.Icon(ft.Icons.PERSON, color="#145c39", size=30),
+                                        ft.Column(
+                                            [
+                                                ft.Text(
+                                                    app_state.username if app_state.username else "Guest",
+                                                    size=14,
+                                                    weight=ft.FontWeight.BOLD,
+                                                    color="#000000"
+                                                ),
+                                                ft.Text(
+                                                    app_state.role if app_state.role else "Guest",
+                                                    size=11,
+                                                    color="#000000"
+                                                ),
+                                            ],
+                                            spacing=2,
+                                        ),
+                                    ],
+                                    spacing=10,
+                                ),
+                            ),
+                            ft.PopupMenuItem(),
+                            ft.PopupMenuItem(
+                                content=ft.Row(
+                                    [
+                                        ft.Icon(ft.Icons.STAR, color="#145c39", size=20),
+                                        ft.Text(f"{point} Points", size=13, color="#000000"),
+                                    ],
+                                    spacing=5,
+                                ),
+                                on_click=go_to_point_mart,
+                            ),
+                            ft.PopupMenuItem(),
+                            ft.PopupMenuItem(
+                                content=ft.Row(
+                                    [
+                                        ft.Icon(ft.Icons.LOGOUT, color="#145c39", size=20),
+                                        ft.Text("Logout", size=13, color="#000000"),
+                                    ],
+                                    spacing=5,
+                                ),
+                                on_click=logout,
+                            ),
+                        ],
+                    )
+    if AppState.is_logged_in:
+        profil = profil_popup
     
     navbar = ft.Container(
         content=ft.Row(
@@ -76,11 +178,7 @@ def create_navbar(page, active_page="home"):
                             spacing=5,
                             vertical_alignment=ft.CrossAxisAlignment.CENTER,
                         ),
-                        ft.IconButton(
-                            ft.Icons.PERSON,
-                            icon_color="white",
-                            on_click=logout,
-                        ),
+                        profil,
                     ],
                     spacing=20,
                     vertical_alignment=ft.CrossAxisAlignment.CENTER,
