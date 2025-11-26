@@ -117,7 +117,7 @@ def DateAndTimeView(page, order_state):
     
     # Build collector card dynamically from `order_state.selected_collector_data`
     def build_collector_card(id):
-        data = getattr(order_state, 'selected_collector_data', None)
+        data = db.get_random_row("wc")
         visible = getattr(order_state, 'show_collector', False)
         if not visible:
             return ft.Container()

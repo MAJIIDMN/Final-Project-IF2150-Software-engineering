@@ -212,6 +212,3 @@ class DatabaseService:
     def close(self):
         self.conn.close()
 
-
-db = DatabaseService()
-db.insert_from_csv("wc", "src/database/file/wc.csv")
