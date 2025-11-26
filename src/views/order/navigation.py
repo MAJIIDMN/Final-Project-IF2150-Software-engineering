@@ -2,6 +2,23 @@ import flet as ft
 from components.shared import create_sidebar
 
 def NavigationView(page, order_state):
+    # ambil data collector yang sudah dipilih di halaman Date and Time
+    row = getattr(order_state, "selected_collector_data", None)
+    if row is not None:
+        # row: (id, name, experience, vehicle, platenumber)
+        collector_id = row[0]
+        collector_name = row[1]
+        collector_experience = row[2]
+        collector_vehicle = row[3]
+        collector_plate = row[4]
+    else:
+        # fallback kalau user masuk langsung tanpa pilih collector dulu
+        collector_id = "1234-5678"
+        collector_name = "Vincent R"
+        collector_experience = "12 years"
+        collector_vehicle = "Motorcycle"
+        collector_plate = "D 9999 FF"
+
     def call_collector(e):
         phone = getattr(order_state, "collector_phone", None) or "6281234567890"
         page.launch_url(f"https://wa.me/{phone}")
@@ -12,6 +29,10 @@ def NavigationView(page, order_state):
         import urllib.parse
         encoded = urllib.parse.quote(text)
         page.launch_url(f"https://wa.me/{phone}?text={encoded}")
+
+    def cancel_order(e):
+        # kembali ke step sebelumnya dalam alur order
+        page.go("/order/date-and-time")
 
     # Waste collector information card
     collector_card = ft.Container(
@@ -31,7 +52,7 @@ def NavigationView(page, order_state):
                         ),
                         ft.Column(
                             controls=[
-                                ft.Text("Vincent R", size=14, weight=ft.FontWeight.BOLD, color="black"),
+                                ft.Text(collector_name, size=14, weight=ft.FontWeight.BOLD, color="black"),
                                 ft.Text("Waste Collector", size=12, color="#757575"),
                             ],
                             spacing=2,
@@ -71,7 +92,7 @@ def NavigationView(page, order_state):
                         ft.Column(
                             controls=[
                                 ft.Text("Experience", size=11, color="#757575"),
-                                ft.Text("12 years", size=13, weight=ft.FontWeight.BOLD),
+                                ft.Text(collector_experience, size=13, weight=ft.FontWeight.BOLD),
                             ],
                             spacing=2,
                         ),
@@ -79,7 +100,7 @@ def NavigationView(page, order_state):
                         ft.Column(
                             controls=[
                                 ft.Text("ID-Number", size=11, color="#757575"),
-                                ft.Text("1234-5678", size=13, weight=ft.FontWeight.BOLD),
+                                ft.Text(collector_id, size=13, weight=ft.FontWeight.BOLD),
                             ],
                             spacing=2,
                         ),
@@ -90,7 +111,7 @@ def NavigationView(page, order_state):
                         ft.Column(
                             controls=[
                                 ft.Text("Vehicle", size=11, color="#757575"),
-                                ft.Text("Motorcycle", size=13, weight=ft.FontWeight.BOLD),
+                                ft.Text(collector_vehicle, size=13, weight=ft.FontWeight.BOLD),
                             ],
                             spacing=2,
                         ),
@@ -98,7 +119,7 @@ def NavigationView(page, order_state):
                         ft.Column(
                             controls=[
                                 ft.Text("License Plate", size=11, color="#757575"),
-                                ft.Text("D 9999 FF", size=13, weight=ft.FontWeight.BOLD),
+                                ft.Text(collector_plate, size=13, weight=ft.FontWeight.BOLD),
                             ],
                             spacing=2,
                         ),
@@ -173,6 +194,7 @@ def NavigationView(page, order_state):
                         bgcolor="#f44336",
                         color="white",
                     ),
+                    on_click=cancel_order,
                 ),
             ],
             spacing=15,

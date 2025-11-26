@@ -11,9 +11,22 @@ def DateAndTimeView(page, order_state):
         page.go("/order/address")
     
     def select_collector(e):
-        order_state.selected_collector = "Vincent R"
-        order_state.selected_date = "03/12/24"
-        order_state.selected_time = "14:18"
+        # gunakan collector yang terakhir dipilih di stop card
+        row = getattr(order_state, 'selected_collector_data', None)
+        if row is not None:
+            # row: (id, name, experience, vehicle, platenumber)
+            order_state.selected_collector = row[1]
+            order_state.selected_collector_id = row[0]
+            order_state.selected_collector_experience = row[2]
+            order_state.selected_collector_vehicle = row[3]
+            order_state.selected_collector_plate = row[4]
+
+        # placeholder untuk tanggal & waktu pickup (bisa dihubungkan ke stop nanti)
+        if not getattr(order_state, 'selected_date', None):
+            order_state.selected_date = "03/12/24"
+        if not getattr(order_state, 'selected_time', None):
+            order_state.selected_time = "14:18"
+
         page.go("/order/navigation")
     
     # Stop point cards (timeline-style)
@@ -115,29 +128,19 @@ def DateAndTimeView(page, order_state):
             on_click=on_click,
         )
     
-    # Build collector card dynamically from `order_state.selected_collector_data`
-    def build_collector_card(id):
-        data = db.get_random_row("wc")
+    # Build collector card berdasarkan satu row collector dari tabel `wc`
+    def build_collector_card(row):
         visible = getattr(order_state, 'show_collector', False)
-        if not visible:
+        if not visible or row is None:
             return ft.Container()
 
-        if data:
-            name = data[1]
-            role = "Waste Collector"
-            experience = data[2]
-            id_number = data[0]
-            vehicle = data[3]
-            license_plate = data[4]
-        else:
-            print("Gagal mengambil data waste collector")
-            # sementara buat randomize
-            # name = random.choice(["Vincent R", "Aisyah P.", "Rahmat S.", "Lina K."])
-            # role = "Waste Collector"
-            # experience = f"{random.randint(3,15)} years"
-            # id_number = f"{random.randint(1000,9999)}-{random.randint(1000,9999)}"
-            # vehicle = random.choice(["Motorcycle", "Pickup", "Van"])
-            # license_plate = f"D {random.randint(1000,9999)} {random.choice(['AA','BB','CC'])}"
+        # row format: (id, name, experience, vehicle, platenumber)
+        id_number = row[0]
+        name = row[1]
+        experience = row[2]
+        vehicle = row[3]
+        license_plate = row[4]
+        role = "Waste Collector"
 
         return ft.Container(
             content=ft.Column(
@@ -298,6 +301,7 @@ def DateAndTimeView(page, order_state):
 
         stops_local = []
         chosen_district_local = None
+        collectors = db.load_all("wc")
         for i in range(n):
             level = levels[i] if i < len(levels) else levels[-1]
             offset = random.randint(*speed_offset_ranges[level])
@@ -317,14 +321,18 @@ def DateAndTimeView(page, order_state):
 
             loc2 = user_address if user_address and user_address.strip() else random.choice(sample_locations)
 
+            # pilih collector acak dari database (jika ada)
+            collector = random.choice(collectors) if collectors else None
+
             stops_local.append({
-                'id': f'ID {random.randint(1000,9999)}-{random.randint(1000,9999)}',
+                'id': collector[0] if collector else f'ID {random.randint(1000,9999)}-{random.randint(1000,9999)}',
                 'location1': loc1,
                 'location2': loc2,
                 'time1': time1,
                 'time2': time2,
                 'wait_time': level,
                 'origin_district': other,
+                'collector_row': collector,
             })
 
         def _time_to_minutes(t):
@@ -340,6 +348,8 @@ def DateAndTimeView(page, order_state):
         user_district = getattr(order_state, 'district', None)
         user_address = getattr(order_state, 'address', None)
         stops, chosen_district = _generate_stops(user_district, user_address)
+        # simpan ke state agar konsisten saat user bolak-balik halaman
+        order_state.stops = stops
 
     stop_controls = []
     if not hasattr(order_state, 'show_collector'):
@@ -349,10 +359,11 @@ def DateAndTimeView(page, order_state):
     order_state.show_collector = True
 
     # ================================================ #
-    def update_collector_data(id):
-        show_collector_card(id)
-        
-        # order_state.show_collector = True
+    def update_collector_data(row):
+        # row adalah satu baris collector dari tabel wc
+        order_state.selected_collector_data = row
+        order_state.show_collector = True
+        show_collector_card(row)
         page.update()
 
     def show_collector_card(data):
@@ -365,19 +376,21 @@ def DateAndTimeView(page, order_state):
         collector_card.update()
 
     for s in stops:
-        ret_id = s.get('id', '').replace("ID ", "", 1)
+        collector_row = s.get('collector_row')
+        stop_id = s.get('id', '')
         stop_controls.append(
             create_stop_card(
-                ret_id,
+                stop_id,
                 s.get('location1', ''),
                 s.get('location2', ''),
                 s.get('time1', ''),
                 s.get('time2', ''),
                 s.get('wait_time', ''),
                 s.get('origin_district', ''),
-                on_click=lambda e, sid=ret_id: update_collector_data(sid),
+                on_click=lambda e, row=collector_row: update_collector_data(row),
             )
         )
+
         stop_controls.append(ft.Container(height=15))
 
     # Main content
@@ -421,7 +434,7 @@ def DateAndTimeView(page, order_state):
     )
     
     collector_card = ft.Container(visible=False, right=40, bottom=40)
-    collector_card.content = build_collector_card("0000-0000")
+    collector_card.content = build_collector_card(getattr(order_state, 'selected_collector_data', None))
 
     # Layout with map background
     content = ft.Stack(
