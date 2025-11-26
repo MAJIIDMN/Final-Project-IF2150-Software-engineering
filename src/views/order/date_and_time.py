@@ -2,6 +2,9 @@ import flet as ft
 import random
 from components.shared import create_sidebar
 
+from services.database import DatabaseService
+db = DatabaseService()
+
 def DateAndTimeView(page, order_state):
     
     def back_step(e):
@@ -115,26 +118,27 @@ def DateAndTimeView(page, order_state):
     
     # Build collector card dynamically from `order_state.selected_collector_data`
     def build_collector_card():
-        data = getattr(order_state, 'selected_collector_data', None)
+        data = db.get_random_row("wc")
         visible = getattr(order_state, 'show_collector', False)
         if not visible:
             return ft.Container()
 
         if data:
-            name = data.get('name', 'Unknown')
-            role = data.get('role', 'Waste Collector')
-            experience = data.get('experience', '')
-            id_number = data.get('id_number', '')
-            vehicle = data.get('vehicle', '')
-            license_plate = data.get('license_plate', '')
-        else:
-            # sementara buat randomize
-            name = random.choice(["Vincent R", "Aisyah P.", "Rahmat S.", "Lina K."])
+            name = data[1]
             role = "Waste Collector"
-            experience = f"{random.randint(3,15)} years"
-            id_number = f"{random.randint(1000,9999)}-{random.randint(1000,9999)}"
-            vehicle = random.choice(["Motorcycle", "Pickup", "Van"])
-            license_plate = f"D {random.randint(1000,9999)} {random.choice(['AA','BB','CC'])}"
+            experience = data[2]
+            id_number = data[0]
+            vehicle = data[3]
+            license_plate = data[4]
+        else:
+            print("Gagal mengambil data waste collector")
+            # sementara buat randomize
+            # name = random.choice(["Vincent R", "Aisyah P.", "Rahmat S.", "Lina K."])
+            # role = "Waste Collector"
+            # experience = f"{random.randint(3,15)} years"
+            # id_number = f"{random.randint(1000,9999)}-{random.randint(1000,9999)}"
+            # vehicle = random.choice(["Motorcycle", "Pickup", "Van"])
+            # license_plate = f"D {random.randint(1000,9999)} {random.choice(['AA','BB','CC'])}"
 
         return ft.Container(
             content=ft.Column(
