@@ -2,6 +2,9 @@ import sqlite3
 import pandas as pd
 import threading
 
+import csv
+from collections import defaultdict
+
 usercounter = 0
 ocounter = 0
 
@@ -208,6 +211,25 @@ class DatabaseService:
         query = f"SELECT * FROM {table} ORDER BY RANDOM() LIMIT 1"
         self.cursor.execute(query)
         return self.cursor.fetchone()
+    
+
+    def load_waste_info(self, csv_path: str) -> dict:
+        df = pd.read_csv(csv_path)
+
+        waste_info = {}
+
+        for _, row in df.iterrows():
+            key = row["text_part"]
+
+            waste_info[key] = {
+                "title": row["title"],
+                "desc": row["desc"],
+                "imgsource": row["imgsource"]
+            }
+
+        return waste_info
+
+
 
     def close(self):
         self.conn.close()
