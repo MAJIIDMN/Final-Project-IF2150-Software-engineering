@@ -17,14 +17,14 @@ class wasteController:
         
         return waste_info_list
     
-    def add_waste_info(self, jenis: str, title: str, text_part: str, image_path: str):
-        query = "INSERT INTO informasi_sampah (jenis, title, text_part, image_path) VALUES (?, ?, ?, ?)"
-        params = (jenis, title, text_part, image_path)
+    def add_waste_info(self, jenis: str, title: str, desc: str, image_path: str):
+        query = "INSERT INTO informasi_sampah (jenis, title, desc, imgsource ) VALUES (?, ?, ?, ?)"
+        params = (jenis, title, desc, image_path)
         db.execute_query(query, params)
 
-    def update_waste_info(self, jenis_sampah: str, title: str, text_part: str, image_path: str):
-        query = "UPDATE informasi_sampah SET title = ?, text_part = ?, image_path = ? WHERE jenis = ?"
-        params = (title, text_part, image_path, jenis_sampah)
+    def update_waste_info(self, jenis_sampah: str, title: str, desc: str, image_path: str):
+        query = "UPDATE informasi_sampah SET title = ?, desc = ?, imgsource = ? WHERE jenis = ?"
+        params = (title, desc, image_path, jenis_sampah)
         db.execute_query(query, params)
 
     def delete_waste_info(self, jenis_sampah: str):
