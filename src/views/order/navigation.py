@@ -1,7 +1,43 @@
 import flet as ft
-from components.shared import create_sidebar
+import random
+import threading
+import time
+from views.order.shared import create_sidebar
+from services.database import DatabaseService
+from models.state import AppState
+
+# DB service for updating points
+db = DatabaseService()
 
 def NavigationView(page, order_state):
+    # If user is logged in and points from this order haven't been applied yet,
+    # add them to the user's account and mark as applied so it runs once.
+    try:
+        AppState.load_state()
+    except Exception:
+        pass
+    points_to_add = getattr(order_state, 'point_gained', 0)
+    already_applied = getattr(order_state, 'point_gained_applied', False)
+    if points_to_add and not already_applied and AppState.is_logged_in and AppState.username:
+        try:
+            # Ensure numeric
+            pts = float(points_to_add)
+        except Exception:
+            pts = 0
+        if pts > 0:
+            update_q = "UPDATE users SET point = COALESCE(point,0) + ? WHERE username = ?"
+            success, msg = db.execute_query(update_q, (pts, AppState.username))
+            if success:
+                # mark applied to avoid double-adding when navigating back and forth
+                order_state.point_gained_applied = True
+                page.snack_bar = ft.SnackBar(ft.Text(f"{pts:.2f} points added to your account."))
+                page.snack_bar.open = True
+                page.update()
+            else:
+                # log or silently ignore - show snackbar for visibility
+                page.snack_bar = ft.SnackBar(ft.Text("Failed to update points."))
+                page.snack_bar.open = True
+                page.update()
     # ambil data collector yang sudah dipilih di halaman Date and Time
     row = getattr(order_state, "selected_collector_data", None)
     if row is not None:
@@ -186,16 +222,6 @@ def NavigationView(page, order_state):
                     ],
                     spacing=2,
                 ),
-                ft.ElevatedButton(
-                    "Cancel",
-                    width=320,
-                    height=45,
-                    style=ft.ButtonStyle(
-                        bgcolor="#f44336",
-                        color="white",
-                    ),
-                    on_click=cancel_order,
-                ),
             ],
             spacing=15,
         ),
@@ -239,47 +265,247 @@ def NavigationView(page, order_state):
     )
     
     # Layout with map background showing route
+    # Layout: sidebar + content, with a small minutes-left box and collector card overlay
+    # Note: removed the gray map bar under the navbar per request.
+    # compute a minutes-left integer (random if not provided) and persist it on order_state
+    minutes = getattr(order_state, 'minutes_left', None)
+    if minutes is None:
+        minutes = random.randint(0, 59)
+        order_state.minutes_left = minutes
+
+    # determine status text and accent color
+    try:
+        m = int(minutes)
+    except Exception:
+        m = 58
+
+    if m == 0:
+        status_text = "The Driver has arrived"
+        accent = "#2e7d32"
+    elif 1 <= m <= 10:
+        status_text = "The Driver is Close!"
+        accent = "#ff9800"
+    else:
+        status_text = "The driver is on the way"
+        accent = "#1976d2"
+
+    # prepare integer minutes and UI controls so we can update them live
+    try:
+        m = int(minutes)
+    except Exception:
+        m = 58
+
+    def compute_status(mins):
+        if mins == 0:
+            return "The Driver has arrived", "#2e7d32"
+        elif 1 <= mins <= 10:
+            return "The Driver is Close!", "#ff9800"
+        else:
+            return "The driver is on the way", "#1976d2"
+
+    status_text, accent = compute_status(m)
+
+    # controls that will be updated by the countdown thread
+    minutes_text = ft.Text(f"{m} min", size=22, weight=ft.FontWeight.BOLD, color="#212121")
+    status_text_control = ft.Text(status_text, size=14, color=accent)
+    icon_container = ft.Container(
+        content=ft.Icon(ft.Icons.ACCESS_TIME, color="white", size=32),
+        width=72,
+        height=72,
+        bgcolor=accent,
+        border_radius=14,
+        alignment=ft.alignment.center,
+    )
+
+    minutes_box = ft.Container(
+        content=ft.Row(
+            controls=[
+                icon_container,
+                ft.Container(width=16),
+                ft.Column(
+                    controls=[
+                        ft.Text("Arrival Estimation", size=14, color="#757575"),
+                        minutes_text,
+                        status_text_control,
+                    ],
+                    spacing=6,
+                    alignment=ft.CrossAxisAlignment.CENTER,
+                ),
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+        ),
+        bgcolor="white",
+        border=ft.border.all(1, "#e0e0e0"),
+        border_radius=16,
+        padding=ft.padding.symmetric(horizontal=20, vertical=14),
+        width=360,
+        height=132,
+        right=40,
+        bottom=72,
+        shadow=ft.BoxShadow(spread_radius=0, blur_radius=20, color=ft.Colors.with_opacity(0.09, "#000000")),
+    )
+
+    # start a background thread that decrements minutes once per minute
+    def start_minutes_countdown():
+        if getattr(order_state, "_minutes_timer_started", False):
+            return
+        order_state._minutes_timer_started = True
+
+        def worker():
+            # run until minutes_left reaches 0
+            while True:
+                try:
+                    cur = int(getattr(order_state, "minutes_left", 0))
+                except Exception:
+                    cur = 0
+                if cur <= 0:
+                    # ensure UI reflects arrival
+                    def arrive():
+                        minutes_text.value = "0 min"
+                        st, ac = compute_status(0)
+                        status_text_control.value = st
+                        status_text_control.color = ac
+                        icon_container.bgcolor = ac
+                        page.update()
+                    try:
+                        page.call_from_thread(arrive)
+                    except Exception:
+                        try:
+                            # fallback: update on main thread
+                            arrive()
+                        except Exception:
+                            pass
+                        # show pickup confirmation dialog immediately (no timer) when arrived
+                        if not getattr(order_state, "_arrival_dialog_scheduled", False):
+                            order_state._arrival_dialog_scheduled = True
+
+                            def show_pickup_dialog():
+                                def _ok(e):
+                                    # Close the dialog (safe on most Flet versions), then
+                                    # remove the page.dialog reference and navigate home.
+                                    try:
+                                        dialog.open = False
+                                        page.update()
+                                    except Exception:
+                                        pass
+
+                                    try:
+                                        page.dialog = None
+                                    except Exception:
+                                        pass
+
+                                    try:
+                                        page.update()
+                                    except Exception:
+                                        pass
+
+                                    # Navigate back to home following the app pattern.
+                                    try:
+                                        page.clean()
+                                    except Exception:
+                                        pass
+                                    try:
+                                        page.home_main(page)
+                                    except Exception:
+                                        try:
+                                            page.go("/")
+                                        except Exception:
+                                            pass
+
+                                pts = getattr(order_state, 'point_gained', 0)
+                                try:
+                                    pts_txt = f"{float(pts):.2f}"
+                                except Exception:
+                                    pts_txt = str(pts)
+
+                                dialog = ft.AlertDialog(
+                                    title=ft.Text("Waste Picked Up"),
+                                    content=ft.Text(f"Your waste has been picked up. You gained {pts_txt} points."),
+                                    actions=[
+                                        ft.ElevatedButton("OK", on_click=_ok, bgcolor="#2e7d32", color="white"),
+                                    ],
+                                )
+                                # Use page.dialog (do not manipulate page.overlay directly) —
+                                # Flet implementations vary; this approach is more portable.
+                                page.dialog = dialog
+                                dialog.open = True
+                                page.update()
+
+                            # try to show on main thread, otherwise call directly as fallback
+                            try:
+                                page.call_from_thread(show_pickup_dialog)
+                            except Exception:
+                                try:
+                                    show_pickup_dialog()
+                                except Exception:
+                                    pass
+                    break
+
+                # sleep one minute
+                time.sleep(60)
+
+                # decrement
+                try:
+                    order_state.minutes_left = max(0, int(order_state.minutes_left) - 1)
+                except Exception:
+                    order_state.minutes_left = 0
+
+                # update UI controls on main thread
+                def tick():
+                    try:
+                        cur2 = int(getattr(order_state, "minutes_left", 0))
+                    except Exception:
+                        cur2 = 0
+                    minutes_text.value = f"{cur2} min"
+                    st2, ac2 = compute_status(cur2)
+                    status_text_control.value = st2
+                    status_text_control.color = ac2
+                    icon_container.bgcolor = ac2
+                    page.update()
+
+                try:
+                    page.call_from_thread(tick)
+                except Exception:
+                    try:
+                        tick()
+                    except Exception:
+                        pass
+
+        t = threading.Thread(target=worker, daemon=True)
+        t.start()
+
+    # start the countdown if needed
+    start_minutes_countdown()
+
     content = ft.Stack(
         controls=[
-            # Map background with route (placeholder - would be actual map in production)
+            # Sidebar and card content (centered)
             ft.Container(
-                content=ft.Column(
+                content=ft.Row(
                     controls=[
+                        create_sidebar(page, 4, order_state),
                         ft.Container(
-                            content=ft.Text(
-                                "Map with Route\n58 min\nEvery 15 min: 1 hr 5 min",
-                                text_align=ft.TextAlign.CENTER,
-                                color="#757575",
+                            content=main_content,
+                            bgcolor="white",
+                            border_radius=12,
+                            margin=40,
+                            shadow=ft.BoxShadow(
+                                spread_radius=1,
+                                blur_radius=10,
+                                color=ft.Colors.with_opacity(0.1, "#000000"),
                             ),
-                            alignment=ft.alignment.center,
+                            width=500,
+                            height=card_height,
                         ),
                     ],
-                    alignment=ft.MainAxisAlignment.CENTER,
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    spacing=0,
                 ),
-                bgcolor="#e0e0e0",
+                alignment=ft.alignment.center,
                 expand=True,
             ),
-            # Sidebar and content
-            ft.Row(
-                controls=[
-                    create_sidebar(page, 4, order_state),
-                    ft.Container(
-                        content=main_content,
-                        bgcolor="white",
-                        border_radius=12,
-                        margin=40,
-                        shadow=ft.BoxShadow(
-                            spread_radius=1,
-                            blur_radius=10,
-                            color=ft.Colors.with_opacity(0.1, "#000000"),
-                        ),
-                        width=500,
-                        height=card_height,
-                    ),
-                ],
-                spacing=0,
-            ),
+            # minutes left box and floating collector card
+            minutes_box,
         ],
         expand=True,
     )

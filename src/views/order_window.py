@@ -23,6 +23,7 @@ class OrderState:
         self.selected_collector = None
         self.completed_steps = set()
         self.point_gained = 0
+        self.minutes_left = 2
 
 
 def main(page: ft.Page):

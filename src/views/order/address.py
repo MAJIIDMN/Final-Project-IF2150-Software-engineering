@@ -1,12 +1,22 @@
 import flet as ft
-from components.shared import create_sidebar
+from views.order.shared import create_sidebar
 
 def AddressView(page, order_state):
     def district_changed(e):
         order_state.district = e.control.value
+        try:
+            district_error.value = ""
+            page.update()
+        except NameError:
+            pass
     
     def address_changed(e):
         order_state.address = e.control.value
+        try:
+            address_error.value = ""
+            page.update()
+        except NameError:
+            pass
     
     def notify_changed(e):
         order_state.notify_on_arrival = e.control.value
@@ -18,14 +28,36 @@ def AddressView(page, order_state):
         # validation: district and address required
         sel_district = district_dropdown.value if 'district_dropdown' in locals() else (order_state.district if order_state.district else None)
         addr = address_field.value.strip() if 'address_field' in locals() and address_field.value else (order_state.address if order_state.address else "")
-        if not sel_district or sel_district in ("- None -", ""):
-            page.snack_bar = ft.SnackBar(ft.Text("Please select a city/district."))
-            page.snack_bar.open = True
-            page.update()
-            return
-        if not addr:
-            page.snack_bar = ft.SnackBar(ft.Text("Please enter the address."))
-            page.snack_bar.open = True
+        # inline validation using error labels
+        has_error = False
+        try:
+            if not sel_district or sel_district in ("- None -", ""):
+                district_error.value = "Please select a city/district."
+                has_error = True
+            else:
+                district_error.value = ""
+        except NameError:
+            # if control not defined yet, fallback to snack
+            if not sel_district or sel_district in ("- None -", ""):
+                page.snack_bar = ft.SnackBar(ft.Text("Please select a city/district."))
+                page.snack_bar.open = True
+                page.update()
+                return
+
+        try:
+            if not addr:
+                address_error.value = "Please enter the address."
+                has_error = True
+            else:
+                address_error.value = ""
+        except NameError:
+            if not addr:
+                page.snack_bar = ft.SnackBar(ft.Text("Please enter the address."))
+                page.snack_bar.open = True
+                page.update()
+                return
+
+        if has_error:
             page.update()
             return
 
@@ -55,21 +87,22 @@ def AddressView(page, order_state):
                 ft.Column(
                     controls=[
                         ft.Text("Subdistrict", size=12, color="#757575"),
-                                district_dropdown := ft.Dropdown(
-                                    width=400,
-                                    options=[
-                                        ft.dropdown.Option("- None -"),
-                                        ft.dropdown.Option("Coblong"),
-                                        ft.dropdown.Option("Sukajadi"),
-                                        ft.dropdown.Option("Cidadap"),
-                                        ft.dropdown.Option("Cicendo"),
-                                        ft.dropdown.Option("Lengkong"),
-                                    ],
-                                    value=order_state.district if order_state.district else "- None -",
-                                    border_color="#e0e0e0",
-                                    on_change=district_changed,
-                                    color="#000000",
-                                ),
+                        district_dropdown := ft.Dropdown(
+                            width=400,
+                            options=[
+                                ft.dropdown.Option("- None -"),
+                                ft.dropdown.Option("Coblong"),
+                                ft.dropdown.Option("Sukajadi"),
+                                ft.dropdown.Option("Cidadap"),
+                                ft.dropdown.Option("Cicendo"),
+                                ft.dropdown.Option("Lengkong"),
+                            ],
+                            value=order_state.district if order_state.district else "- None -",
+                            border_color="#e0e0e0",
+                            on_change=district_changed,
+                            color="#000000",
+                        ),
+                        district_error := ft.Text("", size=12, color="#d32f2f"),
                     ],
                     spacing=5,
                 ),
@@ -85,6 +118,7 @@ def AddressView(page, order_state):
                             on_change=address_changed,
                             color="#000000",
                         ),
+                        address_error := ft.Text("", size=12, color="#d32f2f"),
                     ],
                     spacing=5,
                 ),
