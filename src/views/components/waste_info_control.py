@@ -6,11 +6,6 @@ waste_info = wasteController()
 
 def create_waste_info_control(page: ft.Page):
     waste_list = waste_info.load_waste_info()
-    """
-    Creates the Waste Info Control panel component for admin page.
-    Returns the complete UI container with table and waste info management.
-    """
-    
     # Search state
     search_query = ""
     
