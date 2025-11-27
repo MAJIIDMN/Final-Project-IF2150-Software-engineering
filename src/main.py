@@ -12,6 +12,9 @@ from views.product_detail_window import main as product_detail_main
 from views.order_window import main as order_main
 from views.home_window import main as home_main
 from views.informasi_sampah_window import main as info_main
+from views.admin_control_page import main as admin_control_main
+from views.product_edit_window import main as product_edit_main
+from views.profil_window import main as profil_main
 
 def app_main(page: ft.Page):
     try:
@@ -27,6 +30,9 @@ def app_main(page: ft.Page):
         page.order_main = order_main
         page.home_main = home_main
         page.info_main = info_main
+        page.admin_control_main = admin_control_main
+        page.product_edit_main = product_edit_main
+        page.profil_main = profil_main
         home_main(page)
     except Exception as e:
         print(f"Error: {e}")
