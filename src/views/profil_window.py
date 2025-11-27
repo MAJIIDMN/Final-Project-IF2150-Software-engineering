@@ -6,7 +6,6 @@ from controllers.account_controller import AccountController
 
 user = AccountController()
 app_state = AppState()
-user_data = user.find_user(app_state.username)
 
 fonts = {
     "Poppins": "fonts/poppins/Poppins-Regular.ttf",
@@ -15,6 +14,7 @@ fonts = {
 }
 
 def main(page: ft.Page):
+    user_data = user.find_user(app_state.username)
     page.title = "GrowBak - My Profile"
     page.window_width = 1440
     page.window_height = 900
@@ -38,29 +38,117 @@ def main(page: ft.Page):
     save_email_btn = ft.Ref[ft.ElevatedButton]()
     save_changes_btn = ft.Ref[ft.ElevatedButton]()
     change_password_btn = ft.Ref[ft.ElevatedButton]()
+    save_photo_btn = ft.Ref[ft.ElevatedButton]()
+    delete_photo_btn = ft.Ref[ft.ElevatedButton]()
 
     # Track original data for validation
     original_email = user_data.email
     original_phone = user_data.phonenumber
     original_kecamatan = user_data.kecamatan
+    original_photo = user_data.profile_path if user_data.profile_path else None
+    new_photo_path = None
     email_verified = False
 
     # File picker untuk upload profile image
     def on_profile_picked(e: ft.FilePickerResultEvent):
+        nonlocal new_photo_path
         if e.files:
             file = e.files[0]
-            # TODO: Save image to database
+            # Update image preview
             profile_image.current.src = file.path
+            new_photo_path = file.path
+            # Enable save button
+            if save_photo_btn.current:
+                save_photo_btn.current.disabled = False
+                save_photo_btn.current.bgcolor = "#1e8c45"
             page.update()
     
     file_picker = ft.FilePicker(on_result=on_profile_picked)
     page.overlay.append(file_picker)
-    
+
     def on_upload_profile(e):
         file_picker.pick_files(
             allowed_extensions=["png", "jpg", "jpeg", "gif", "bmp", "webp"],
             allow_multiple=False,
         )
+    
+    # Save profile photo handler
+    def on_save_photo(e):
+        nonlocal original_photo, new_photo_path
+        def close_dialog(e, dialog):
+            dialog.open = False
+            page.update()
+        
+        def confirm_save(e):
+            nonlocal original_photo, new_photo_path
+            # Save to database
+            user.update_photo_profile(new_photo_path, user_data.username)
+            original_photo = new_photo_path
+            new_photo_path = None
+            
+            # Disable save button
+            if save_photo_btn.current:
+                save_photo_btn.current.disabled = True
+                save_photo_btn.current.bgcolor = "#888888"
+            
+            success_dialog = Alert.create_alert_dialog(
+                "Success",
+                "Profile photo updated successfully!",
+                lambda x: close_dialog(x, success_dialog)
+            )
+            page.overlay.append(success_dialog)
+            success_dialog.open = True
+            page.update()
+        
+        # Show confirmation dialog
+        dialog = Alert.confirm_alert_dialog(
+            "Confirm Save Photo",
+            "Are you sure you want to save this profile photo?",
+            confirm_save
+        )
+        page.overlay.append(dialog)
+        dialog.open = True
+        page.update()
+    
+    # Delete profile photo handler
+    def on_delete_photo(e):
+        nonlocal original_photo, new_photo_path
+        def close_dialog(e, dialog):
+            dialog.open = False
+            page.update()
+        
+        def confirm_delete(e):
+            # Delete from database
+            user.update_photo_profile(None, user_data.username)
+            original_photo = None
+            new_photo_path = None
+            
+            # Reset to default image
+            profile_image.current.src = "img/default_profile.png"
+            
+            # Disable save button
+            if save_photo_btn.current:
+                save_photo_btn.current.disabled = True
+                save_photo_btn.current.bgcolor = "#888888"
+            
+            success_dialog = Alert.create_alert_dialog(
+                "Success",
+                "Profile photo deleted successfully!",
+                lambda x: close_dialog(x, success_dialog)
+            )
+            page.overlay.append(success_dialog)
+            success_dialog.open = True
+            page.update()
+        
+        # Show confirmation dialog
+        dialog = Alert.confirm_alert_dialog(
+            "Confirm Delete Photo",
+            "Are you sure you want to delete your profile photo?",
+            confirm_delete
+        )
+        page.overlay.append(dialog)
+        dialog.open = True
+        page.update()
     
     # Validation functions for buttons
     def check_email_changed(e):
@@ -134,8 +222,7 @@ def main(page: ft.Page):
             nonlocal email_verified, original_email
             email_verified = True
             original_email = new_email
-            # TODO: Save email to database here
-            # Disable save email button after successful save
+            user.change_email(new_email, user_data.username)
             if save_email_btn.current:
                 save_email_btn.current.disabled = True
                 save_email_btn.current.bgcolor = "#888888"
@@ -178,9 +265,11 @@ def main(page: ft.Page):
         def confirm_save(e):
             nonlocal original_phone, original_kecamatan
             
-            # TODO: Save to database here
-            
-            # Update original values after save
+            user.change_profil(
+                phone_input.current.value.strip(),
+                kecamatan_input.current.value.strip(),
+                user_data.username
+            )
             original_phone = phone_input.current.value.strip()
             original_kecamatan = kecamatan_input.current.value.strip()
         
@@ -211,14 +300,11 @@ def main(page: ft.Page):
 
     # Change password handler
     def on_change_password(e):
-        # TODO: Implement password change logic
         if new_password.current.value != confirm_password.current.value:
-            error_dialog = ft.AlertDialog(
-                title=ft.Text("Error", color="#d32f2f"),
-                content=ft.Text("New password and confirmation don't match!", color="#000000"),
-                actions=[
-                    ft.TextButton("OK", on_click=lambda x: (setattr(error_dialog, 'open', False), page.update()))
-                ],
+            error_dialog = Alert.create_alert_dialog(
+                "Error",
+                "New password don't match!",
+                lambda x: (setattr(error_dialog, 'open', False), page.update())
             )
             page.overlay.append(error_dialog)
             error_dialog.open = True
@@ -310,6 +396,39 @@ def main(page: ft.Page):
                                         bgcolor="#1e8c45",
                                         color="white",
                                         on_click=on_upload_profile,
+                                        style=ft.ButtonStyle(
+                                            text_style=ft.TextStyle(size=13, font_family="PoppinsSBold"),
+                                            shape=ft.RoundedRectangleBorder(radius=8),
+                                        ),
+                                    ),
+                                    ft.Container(height=10),
+                                    
+                                    # Save Photo button
+                                    ft.ElevatedButton(
+                                        "Save Photo",
+                                        ref=save_photo_btn,
+                                        icon=ft.Icons.SAVE,
+                                        width=250,
+                                        bgcolor="#888888",
+                                        color="white",
+                                        disabled=True,
+                                        on_click=on_save_photo,
+                                        style=ft.ButtonStyle(
+                                            text_style=ft.TextStyle(size=13, font_family="PoppinsSBold"),
+                                            shape=ft.RoundedRectangleBorder(radius=8),
+                                        ),
+                                    ),
+                                    ft.Container(height=10),
+                                    
+                                    # Delete Photo button
+                                    ft.ElevatedButton(
+                                        "Delete Photo",
+                                        ref=delete_photo_btn,
+                                        icon=ft.Icons.DELETE,
+                                        width=250,
+                                        bgcolor="#d32f2f",
+                                        color="white",
+                                        on_click=on_delete_photo,
                                         style=ft.ButtonStyle(
                                             text_style=ft.TextStyle(size=13, font_family="PoppinsSBold"),
                                             shape=ft.RoundedRectangleBorder(radius=8),

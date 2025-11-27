@@ -172,3 +172,26 @@ class AccountController:
         query = "UPDATE users SET password = ? WHERE username = ?"
         self.db.execute_query(query, (new_pass, username))
         return True
+    
+    def change_email(self, new_email, username):
+        query = "UPDATE users SET email = ? WHERE username = ?"
+        self.db.execute_query(query, (new_email, username))
+        return True
+    
+    def change_profil(self, new_phonenumber, address, username):
+        query = "UPDATE users SET phonenumber = ?, kecamatan = ? WHERE username = ?"
+        self.db.execute_query(query, (new_phonenumber, address, username))
+        return True
+
+    def update_photo_profile(self, photo_path, username):
+        query = "UPDATE users SET profil_path = ? WHERE username = ?"
+        self.db.execute_query(query, (photo_path, username))
+        return True
+    
+    def find_profile_photo(self, username):
+        query = "SELECT profil_path FROM users WHERE username = ?"
+        row = self.db.fetch_one(query, (username,))
+        if row:
+            return row[0]   # profile_path
+        return None
+    
