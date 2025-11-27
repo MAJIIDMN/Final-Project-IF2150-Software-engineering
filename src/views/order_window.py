@@ -18,12 +18,10 @@ class OrderState:
         self.district = ""
         self.address = ""
         self.notify_on_arrival = False
-        self.selected_date = None
-        self.selected_time = None
+        self.duration = 0
         self.selected_collector = None
         self.completed_steps = set()
         self.point_gained = 0
-        self.minutes_left = 2
 
 
 def main(page: ft.Page):
