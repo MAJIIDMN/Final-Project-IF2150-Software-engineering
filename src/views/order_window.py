@@ -56,8 +56,15 @@ def main(page: ft.Page):
     top_nav = create_navbar(page, "order")
     navigate_to("/order/general-details")
 
+    gradient_canvas = ft.Image(
+        src="src/database/image/home/background_service.png",
+        fit=ft.ImageFit.COVER,
+        expand=True
+    )
+
     main_stack = ft.Stack(
         controls=[
+            gradient_canvas,
             ft.Column(
                 controls=[
                     top_nav,

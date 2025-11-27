@@ -192,12 +192,20 @@ def AddressView(page, order_state):
         expand=True,
     )
 
+        
+
     # Layout with map background
     content = ft.Row(
         controls=[
             sidebar_ctrl,
             ft.Container(   # right panel, takes remaining width
-                content=right_stack,
+                content=ft.Row(
+                    [
+                        main_content
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    expand=True,
+                ),
                 expand=True,
             ),
         ],
