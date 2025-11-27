@@ -97,7 +97,6 @@ def main(page: ft.Page, product_data=None):
         else:
             valid = point_mart.redeem_hadiah(AppState.username, product_data["id"], point_mart.load_hadiah())
             if valid:
-                page.product_detail_main(page, product_data)
                 dialog = Alert("Berhasil!", "Produk berhasil ditukarkan!")
             else:
                 dialog = Alert("Gagal", "Poin tidak cukup untuk menukarkan produk ini.")
@@ -105,6 +104,8 @@ def main(page: ft.Page, product_data=None):
             page.overlay.append(dialog)
             dialog.open = True
             page.update()
+            page.clear()
+            page.product_detail_main(page, product_data)
 
     # Top navigation bar
     top_nav = create_navbar(page, "point_mart")

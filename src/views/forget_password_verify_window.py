@@ -152,7 +152,7 @@ def main(page: ft.Page):
             ft.Row(
                 [
                     ft.Text("Didn't receive a code? ", color="#313131", opacity=0.75),
-                    ft.TextButton("Resend", on_click=lambda e: print("Resend code"), style=ft.ButtonStyle(
+                    ft.TextButton("Resend", on_click=lambda e: None, style=ft.ButtonStyle(
                         color="#1e8c45"
                     )),
                 ],

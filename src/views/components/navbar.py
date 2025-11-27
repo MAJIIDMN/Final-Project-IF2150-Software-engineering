@@ -7,6 +7,20 @@ acc_controller = AccountController()
 
 def create_navbar(page, active_page="home"):
     point = acc_controller.get_point(app_state.username)
+    profile_photo = acc_controller.find_profile_photo(app_state.username)
+    if profile_photo is None:
+        icon_profile = ft.Icon(ft.Icons.PERSON, color="white", size=24)
+    else:
+        icon_profile = ft.Container(
+            content=ft.Image(
+                src=profile_photo,
+                fit=ft.ImageFit.COVER,
+            ),
+            width=24,
+            height=24,
+            border_radius=12,
+            clip_behavior=ft.ClipBehavior.HARD_EDGE,
+        )
     
     def logout(e):
         app_state.clear_state()
@@ -50,8 +64,7 @@ def create_navbar(page, active_page="home"):
             return ft.TextStyle(size=20, font_family="Poppins")
         
     profil = ft.PopupMenuButton(
-                        icon=ft.Icons.PERSON,
-                        icon_color="white",
+                        content=icon_profile,
                         bgcolor="#ffffff",
                         items=[
                             ft.PopupMenuItem(
@@ -92,14 +105,22 @@ def create_navbar(page, active_page="home"):
                         ],
                     )
     profil_popup = ft.PopupMenuButton(
-                        icon=ft.Icons.PERSON,
-                        icon_color="white",
+                        content=icon_profile,
                         bgcolor="#ffffff",
                         items=[
                             ft.PopupMenuItem(
                                 content=ft.Row(
                                     [
-                                        ft.Icon(ft.Icons.PERSON, color="#145c39", size=30),
+                                        ft.Container(
+                                            content=ft.Image(
+                                                src=profile_photo if profile_photo else "img/default_profile.png",
+                                                fit=ft.ImageFit.COVER,
+                                            ),
+                                            width=30,
+                                            height=30,
+                                            border_radius=15,
+                                            clip_behavior=ft.ClipBehavior.HARD_EDGE,
+                                        ) if profile_photo else ft.Icon(ft.Icons.PERSON, color="#145c39", size=30),
                                         ft.Column(
                                             [
                                                 ft.Text(
@@ -146,14 +167,22 @@ def create_navbar(page, active_page="home"):
                         ],
                     )
     profil_admin = ft.PopupMenuButton(
-                        icon=ft.Icons.PERSON,
-                        icon_color="white",
+                        content=icon_profile,
                         bgcolor="#ffffff",
                         items=[
                             ft.PopupMenuItem(
                                 content=ft.Row(
                                     [
-                                        ft.Icon(ft.Icons.PERSON, color="#145c39", size=30),
+                                        ft.Container(
+                                            content=ft.Image(
+                                                src=profile_photo if profile_photo else "img/default_profile.png",
+                                                fit=ft.ImageFit.COVER,
+                                            ),
+                                            width=30,
+                                            height=30,
+                                            border_radius=15,
+                                            clip_behavior=ft.ClipBehavior.HARD_EDGE,
+                                        ) if profile_photo else ft.Icon(ft.Icons.PERSON, color="#145c39", size=30),
                                         ft.Column(
                                             [
                                                 ft.Text(
@@ -211,7 +240,7 @@ def create_navbar(page, active_page="home"):
                         ],
                     )
     if AppState.is_logged_in:
-        if app_state.role == "admin":
+        if app_state.role == "Admin":
             profil = profil_admin
         else:
             profil = profil_popup
