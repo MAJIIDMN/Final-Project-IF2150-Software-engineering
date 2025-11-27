@@ -7,6 +7,41 @@ db = DatabaseService()
 
 def DateAndTimeView(page, order_state):
     
+    dur = 0
+
+    # map district names to letter codes
+    def district_to_code(name: str) -> str:
+        if not name:
+            return 'x'
+        m = {
+            'coblong': 'a',
+            'sukajadi': 'b',
+            'cidadap': 'c',
+            'cicendo': 'd',
+            'lengkong': 'e',
+        }
+        return m.get(str(name).strip().lower(), 'x')
+
+    def get_map_path(map_districts: str) -> str:
+        # returns the expected map image path for a map_districts key
+        # Normalize pair ordering alphabetically so e.g. 'c_a' -> 'a_c'
+        try:
+            if not map_districts:
+                return "img/order-bg-image.avif"
+            parts = str(map_districts).strip().lower().split("_")
+            # if we have at least two parts, sort the first two and join
+            if len(parts) >= 2:
+                a = parts[0].strip()
+                b = parts[1].strip()
+                pair = "_".join(sorted([a, b]))
+                return f"src/services/{pair}.jpg"
+            # fallback: single part
+            part = parts[0].strip()
+            return f"src/services/{part}.jpg"
+        except Exception:
+            # on any error, fallback to the default local image
+            return "img/order-bg-image.avif"
+
     def back_step(e):
         page.go("/order/address")
     
@@ -27,11 +62,8 @@ def DateAndTimeView(page, order_state):
             order_state.selected_collector_vehicle = row[3]
             order_state.selected_collector_plate = row[4]
 
-            # placeholder for date & time if not set
-            if not getattr(order_state, 'selected_date', None):
-                order_state.selected_date = "03/12/24"
-            if not getattr(order_state, 'selected_time', None):
-                order_state.selected_time = "14:18"
+            if not getattr(order_state, 'duration', None):
+                order_state.duration = "14:18"
 
             # close dialog and navigate
             try:
@@ -400,6 +432,13 @@ def DateAndTimeView(page, order_state):
                 collector = random.choice(pool)
                 pool.remove(collector)
 
+            dur = time2_minutes - current_minutes
+            # compute map district code pair based on user's district and collector origin
+            user_code = district_to_code(user_district)
+            other_code = district_to_code(other)
+            map_districts = f"{user_code}_{other_code}"
+            map_path = get_map_path(map_districts)
+
             stops_local.append({
                 'id': collector[0] if collector else f'ID {random.randint(1000,9999)}-{random.randint(1000,9999)}',
                 'location1': loc1,
@@ -409,6 +448,9 @@ def DateAndTimeView(page, order_state):
                 'wait_time': level,
                 'origin_district': other,
                 'collector_row': collector,
+                'duration': dur,
+                'map_districts': map_districts,
+                'map_path': map_path,
             })
 
         def _time_to_minutes(t):
@@ -470,29 +512,31 @@ def DateAndTimeView(page, order_state):
         route_image_inner.update()
         map_image_box.update()
 
-    def update_cards(collector_row, origin_district):
-        # aggregator: show both collector card and route box when a stop is clicked
+    def update_cards(collector_row, origin_district, duration, map_districts, map_path):
+        nonlocal dur
         # show collector card (existing behavior)
         update_collector_data(collector_row)
 
-        # build a placeholder path based on district for future asset mapping
-        # print(origin_district)
-        if origin_district:
-            slug = str(origin_district).lower().replace(' ', '_')
-            # path = f"img/route_{slug}.avif"
-            # ganti klo udh dpt path yg bener
-            path = "img/order-bg-image.avif"
-        else:
-            path = "img/order-bg-image.avif"
+        # set the outer dur variable and save to order_state
+        dur = duration
+        order_state.duration = duration
 
-        # show route box with computed path
-        show_route_box(path)
+        # store map pair and path on order_state
+        order_state.map_districts = map_districts
+        order_state.map_path = map_path
+
+        # show route box with provided map path (show_route_box will handle fallback)
+        show_route_box(map_path)
 
     for s in stops:
         collector_row = s.get('collector_row')
         stop_id = s.get('id', '')
         origin = s.get('origin_district', None)
-        # pass both collector row and origin district so we can update both cards
+        duration = s.get('duration', 0)
+        map_districts = s.get('map_districts', '')
+        map_path = s.get('map_path', '')
+        print(origin)
+        print(map_path)
         stop_controls.append(
             create_stop_card(
                 stop_id,
@@ -502,7 +546,7 @@ def DateAndTimeView(page, order_state):
                 s.get('time2', ''),
                 s.get('wait_time', ''),
                 origin,
-                on_click=lambda e, row=collector_row, origin=origin: update_cards(row, origin),
+                on_click=lambda e, row=collector_row, origin=origin, duration=duration, md=map_districts, mp=map_path: update_cards(row, origin, duration, md, mp),
             )
         )
 

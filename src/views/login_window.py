@@ -191,13 +191,16 @@ def main(page: ft.Page):
                             
                             ft.Container(height=10),
                             
-                            # Remember me and Forgot password
+                            # Remember me dan Forgot password
                             ft.Row(
                                 [
                                     ft.Checkbox(
                                         ref=checkbox,
                                         label="Remember me",
                                         on_change=on_checkbox_change,
+                                        label_style=ft.TextStyle(
+                                        color="#000000",
+                                        ),
                                     ),
                                     ft.TextButton(
                                         "Forgot Password",
@@ -228,7 +231,7 @@ def main(page: ft.Page):
                             
                             ft.Container(height=5),
                             
-                            # Sign up link
+                            # Sign up
                             ft.Row(
                                 [
                                     ft.Text("Don't have an account?", size=13, color="#666666", font_family="Poppins"),
@@ -252,7 +255,7 @@ def main(page: ft.Page):
                     padding=ft.padding.only(left=60, right=60, top=60, bottom=40),
                 ),
                 
-                # Logo on top right
+                # Logo di kanan atas
                 ft.Container(
                     content=ft.Image(
                         src="img/logo.png",
