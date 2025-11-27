@@ -1,5 +1,8 @@
 import flet as ft
 import re
+from controllers.account_controller import AccountController
+from models.state import AppState
+from views.components.Alert import create_alert_dialog as Alert
 
 fonts = {
     "Poppins": "fonts/poppins/Poppins-Regular.ttf",
@@ -7,6 +10,7 @@ fonts = {
     "PoppinsSBold": "fonts/poppins/Poppins-SemiBold.ttf",
 }
 
+acc = AccountController()  
 
 def main(page: ft.Page):
     page.title = "GrowBak - Sign Up"
@@ -14,7 +18,7 @@ def main(page: ft.Page):
     page.window_height = 1024
     page.padding = 0
     page.bgcolor = "#ffffff"
-    page.scroll = ft.ScrollMode.AUTO
+    page.scroll = None
     
     page.fonts = fonts
     page.theme = ft.Theme(font_family="Poppins")
@@ -23,6 +27,7 @@ def main(page: ft.Page):
     # Variabel untuk menyimpan data
     first_name = ft.Ref[ft.TextField]()
     last_name = ft.Ref[ft.TextField]()
+    username = ft.Ref[ft.TextField]()
     email = ft.Ref[ft.TextField]()
     phone = ft.Ref[ft.TextField]()
     address = ft.Ref[ft.TextField]()
@@ -33,6 +38,7 @@ def main(page: ft.Page):
     def on_focus(e, field_ref):
         field_ref.current.label_style = ft.TextStyle(color="#000000")
         page.update()
+    
     def on_blur_label(e, field_ref):
         field_ref.current.label_style = ft.TextStyle(color="#c2c2c2")
         page.update()
@@ -55,12 +61,27 @@ def main(page: ft.Page):
     def go_to_login(e):
         page.clean()
         page.login_main(page)
-    
+
+    def close_dialog(e, dialog):
+        dialog.open = False
+        page.update()
+
+    # Fungsi tampilkan dialog success
+    def show_success_dialog(username):
+        dialog = Alert("Berhasil", f"Akun berhasil didaftarkan {username}!", on_ok=lambda e: close_dialog(e, dialog))
+        page.dialog = dialog
+        page.overlay.append(dialog)
+        dialog.open = True
+        page.update()
+        page.clean()
+        page.home_main(page)
+
     # Fungsi create account
     def create_account(e):
         # Reset error messages
         first_name.current.error_text = None
         last_name.current.error_text = None
+        username.current.error_text = None
         email.current.error_text = None
         phone.current.error_text = None
         address.current.error_text = None
@@ -78,6 +99,16 @@ def main(page: ft.Page):
             last_name.current.error_text = "Last name harus diisi"
             is_valid = False
             
+        if not username.current.value:
+            username.current.error_text = "Username harus diisi"
+            is_valid = False
+        elif len(username.current.value) < 3:
+            username.current.error_text = "Username minimal 3 karakter"
+            is_valid = False
+        elif not re.match(r'^[a-zA-Z0-9_]+$', username.current.value):
+            username.current.error_text = "Username hanya boleh huruf, angka, dan underscore"
+            is_valid = False
+            
         if not email.current.value:
             email.current.error_text = "Email harus diisi"
             is_valid = False
@@ -87,6 +118,9 @@ def main(page: ft.Page):
             
         if not phone.current.value:
             phone.current.error_text = "Phone number harus diisi"
+            is_valid = False
+        elif (len(phone.current.value) < 10 or len(phone.current.value) > 13):
+            phone.current.error_text = "Nomor telepon tidak valid"
             is_valid = False
             
         if not address.current.value:
@@ -108,31 +142,43 @@ def main(page: ft.Page):
             is_valid = False
         
         page.update()
+
+        # newUser = acc.register(first_name.current.value, last_name.current.value, email.current.value, phone.current.value, address.current.value, password.current.value)
+        
+        #nih kasusnya sama kyk login sih wkwkwk
+
         
         if is_valid:
-            # Tampilkan dialog sukses
-            def close_dialog(e):
-                dialog.open = False
-                page.update()
-                # Reset form
-                first_name.current.value = ""
-                last_name.current.value = ""
-                email.current.value = ""
-                phone.current.value = ""
-                address.current.value = ""
-                password.current.value = ""
-                confirm_password.current.value = ""
-                page.update()
-            
-            dialog = ft.AlertDialog(
-                title=ft.Text("Berhasil!"),
-                content=ft.Text("Account berhasil dibuat!"),
-                actions=[
-                    ft.TextButton("OK", on_click=close_dialog)
-                ]
+            newUser, message = acc.register_user(
+                first_name.current.value,
+                last_name.current.value,
+                email.current.value,
+                phone.current.value,
+                address.current.value,  # kecamatan
+                password.current.value,
+                username.current.value,
+                role="client"
             )
-            page.dialog = dialog
-            dialog.open = True
+
+            if not newUser:
+                dialog = Alert("Gagal!", message, on_ok=lambda e: close_dialog(e, dialog))
+                page.dialog = dialog
+                page.overlay.append(dialog)
+                dialog.open = True
+                page.update()
+                return
+            
+            show_success_dialog(username.current.value)
+            
+            # Reset form
+            first_name.current.value = ""
+            last_name.current.value = ""
+            username.current.value = ""
+            email.current.value = ""
+            phone.current.value = ""
+            address.current.value = ""
+            password.current.value = ""
+            confirm_password.current.value = ""
             page.update()
     
     # Left side - Image
@@ -229,6 +275,19 @@ def main(page: ft.Page):
                 ),
                 
                 ft.TextField(
+                    ref=username,
+                    label="Username",
+                    border_color="#e0e0e0",
+                    focused_border_color="#1e8c45",
+                    height=65,
+                    text_style=ft.TextStyle(color="#000000"),
+                    cursor_color="#000000",
+                    label_style=ft.TextStyle(color="#c2c2c2"),
+                    on_focus=lambda e: on_focus(e, username),
+                    on_blur=lambda e: on_blur_label(e, username),
+                ),
+                
+                ft.TextField(
                     ref=address,
                     label="Address",
                     border_color="#e0e0e0",
@@ -295,6 +354,7 @@ def main(page: ft.Page):
                         ft.Text("Already have an account?", size=13, color="#666666", font_family="Poppins"),
                         ft.TextButton(
                             "Login",
+                            on_click=lambda e: go_to_login(e),
                             style=ft.ButtonStyle(
                                 color="#d32f2f",
                                 padding=0,
