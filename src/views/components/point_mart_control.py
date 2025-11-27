@@ -6,10 +6,6 @@ point_mart = PointMart()
 
 def create_point_mart_control(page: ft.Page):
     product_list = point_mart.load_hadiah()
-    """
-    Creates the Point Mart Control panel component for admin page.
-    Returns the complete UI container with table and product management.
-    """
     
     # Sort state
     sort_by = None  # 'points' or 'stock'
