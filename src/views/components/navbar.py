@@ -5,7 +5,7 @@ from controllers.account_controller import AccountController
 app_state = AppState()
 acc_controller = AccountController()
 
-def create_navbar(page, active_page="home"):
+def create_navbar(page, active_page="home", verify_switch=0):
     point = acc_controller.get_point(app_state.username)
     profile_photo = acc_controller.find_profile_photo(app_state.username)
     if profile_photo is None:
@@ -22,6 +22,8 @@ def create_navbar(page, active_page="home"):
             clip_behavior=ft.ClipBehavior.HARD_EDGE,
         )
     
+    
+
     def logout(e):
         app_state.clear_state()
         page.clean()
@@ -62,6 +64,51 @@ def create_navbar(page, active_page="home"):
             return ft.TextStyle(size=20, weight=ft.FontWeight.BOLD, font_family="PoppinsBold")
         else:
             return ft.TextStyle(size=20, font_family="Poppins")
+    
+    # confirmation dialog for discarding an in-progress order
+    pending_action = {"fn": None, "args": None}
+
+    def _close_confirm(e):
+        try:
+            confirm_dialog.open = False
+        except Exception:
+            pass
+        page.update()
+
+    def _confirm_and_navigate(e):
+        # close first
+        _close_confirm(e)
+        fn = pending_action.get("fn")
+        args = pending_action.get("args") or []
+        try:
+            if fn:
+                fn(*args)
+        finally:
+            pending_action["fn"] = None
+            pending_action["args"] = None
+
+    confirm_dialog = ft.AlertDialog(
+        title=ft.Text("Discard Order?"),
+        content=ft.Text("Are you sure you want to discard your current order?"),
+        actions=[
+            ft.TextButton("Cancel", on_click=_close_confirm),
+            ft.ElevatedButton("Confirm", on_click=_confirm_and_navigate, bgcolor="#d32f2f", color="white"),
+        ],
+    )
+
+    def _request_or_navigate(fn, *args):
+        if verify_switch:
+            pending_action["fn"] = fn
+            pending_action["args"] = args
+            try:
+                page.dialog = confirm_dialog
+                page.overlay.append(confirm_dialog)
+                confirm_dialog.open = True
+            except Exception:
+                pass
+            page.update()
+        else:
+            fn(*args)
         
     profil = ft.PopupMenuButton(
                         content=icon_profile,
@@ -261,22 +308,22 @@ def create_navbar(page, active_page="home"):
                         ft.TextButton(
                             "Home", 
                             style=ft.ButtonStyle(color="white", text_style=get_nav_text_style("home")),
-                            on_click=go_to_home,
+                            on_click=lambda e: _request_or_navigate(lambda: go_to_home(None)),
                             ),
                         ft.TextButton(
                             "Info Sampah", 
                             style=ft.ButtonStyle(color="white", text_style=get_nav_text_style("info")),
-                            on_click=go_to_info,
+                            on_click=lambda e: _request_or_navigate(lambda: go_to_info(None)),
                             ),
                         ft.TextButton(
                             "Order", 
                             style=ft.ButtonStyle(color="white", text_style=get_nav_text_style("order")),
-                            on_click=go_to_order,
+                            on_click=lambda e: _request_or_navigate(lambda: go_to_order(None)),
                             ),
                         ft.TextButton(
                             "Point Mart",
                             style=ft.ButtonStyle(color="white", text_style=get_nav_text_style("point_mart")), 
-                            on_click=go_to_point_mart,
+                            on_click=lambda e: _request_or_navigate(lambda: go_to_point_mart(None)),
                             )
                             
                     ],
