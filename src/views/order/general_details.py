@@ -801,8 +801,9 @@ def GeneralDetailsView(page, order_state):
             scroll=ft.ScrollMode.AUTO,
         ),
         bgcolor="white",
+        # opacity=0.9,
         height=card_height,
-        expand = True,
+        # expand = True,
         padding=40,
     )
     
@@ -810,18 +811,29 @@ def GeneralDetailsView(page, order_state):
     content = ft.Row(
         controls=[
             create_sidebar(page, 1, order_state),
-            main_content,
+            ft.Row(
+                [
+                    main_content
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                expand=True,
+            )
         ],
+        alignment=ft.MainAxisAlignment.CENTER,
         spacing=0,
         expand=True,
     )
 
+    # page.horizontal_alignment = "stretch",
+    # page.vertical_alignment = "stretch",
+
+
     return ft.Container(
-        content=ft.Column(
+        content=ft.Stack(
             controls=[
                 content,
             ],
-            spacing=0,
+            # spacing=0,
             expand=True,
         ),
         padding=0,
