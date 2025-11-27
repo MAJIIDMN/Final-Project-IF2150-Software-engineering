@@ -263,10 +263,10 @@ def NavigationView(page, order_state):
     # Layout: sidebar + content, with a small minutes-left box and collector card overlay
     # Note: removed the gray map bar under the navbar per request.
     # compute a minutes-left integer (random if not provided) and persist it on order_state
-    minutes = getattr(order_state, 'minutes_left', None)
+    minutes = getattr(order_state, 'duration', None)
     if minutes is None:
         minutes = random.randint(0, 59)
-        order_state.minutes_left = minutes
+        order_state.duration = minutes
 
     # determine status text and accent color
     try:
@@ -283,12 +283,6 @@ def NavigationView(page, order_state):
     else:
         status_text = "The driver is on the way"
         accent = "#1976d2"
-
-    # prepare integer minutes and UI controls so we can update them live
-    try:
-        m = int(minutes)
-    except Exception:
-        m = 58
 
     def compute_status(mins):
         if mins == 0:
@@ -351,7 +345,7 @@ def NavigationView(page, order_state):
             # run until minutes_left reaches 0
             while True:
                 try:
-                    cur = int(getattr(order_state, "minutes_left", 0))
+                    cur = int(getattr(order_state, "duration", 0))
                 except Exception:
                     cur = 0
                 if cur <= 0:
@@ -448,14 +442,14 @@ def NavigationView(page, order_state):
 
                 # decrement
                 try:
-                    order_state.minutes_left = max(0, int(order_state.minutes_left) - 1)
+                    order_state.duration = max(0, int(order_state.duration) - 1)
                 except Exception:
-                    order_state.minutes_left = 0
+                    order_state.duration = 0
 
                 # update UI controls on main thread
                 def tick():
                     try:
-                        cur2 = int(getattr(order_state, "minutes_left", 0))
+                        cur2 = int(getattr(order_state, "duration", 0))
                     except Exception:
                         cur2 = 0
                     minutes_text.value = f"{cur2} min"

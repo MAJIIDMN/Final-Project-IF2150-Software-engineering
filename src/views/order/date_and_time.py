@@ -7,6 +7,8 @@ db = DatabaseService()
 
 def DateAndTimeView(page, order_state):
     
+    dur = 0
+
     def back_step(e):
         page.go("/order/address")
     
@@ -27,11 +29,8 @@ def DateAndTimeView(page, order_state):
             order_state.selected_collector_vehicle = row[3]
             order_state.selected_collector_plate = row[4]
 
-            # placeholder for date & time if not set
-            if not getattr(order_state, 'selected_date', None):
-                order_state.selected_date = "03/12/24"
-            if not getattr(order_state, 'selected_time', None):
-                order_state.selected_time = "14:18"
+            if not getattr(order_state, 'duration', None):
+                order_state.duration = "14:18"
 
             # close dialog and navigate
             try:
@@ -400,6 +399,8 @@ def DateAndTimeView(page, order_state):
                 collector = random.choice(pool)
                 pool.remove(collector)
 
+            dur = time2_minutes-current_minutes
+            # print(dur)
             stops_local.append({
                 'id': collector[0] if collector else f'ID {random.randint(1000,9999)}-{random.randint(1000,9999)}',
                 'location1': loc1,
@@ -409,6 +410,7 @@ def DateAndTimeView(page, order_state):
                 'wait_time': level,
                 'origin_district': other,
                 'collector_row': collector,
+                'duration': dur,
             })
 
         def _time_to_minutes(t):
@@ -470,13 +472,17 @@ def DateAndTimeView(page, order_state):
         route_image_inner.update()
         map_image_box.update()
 
-    def update_cards(collector_row, origin_district):
+    def update_cards(collector_row, origin_district, duration):
+        nonlocal dur
         # aggregator: show both collector card and route box when a stop is clicked
         # show collector card (existing behavior)
         update_collector_data(collector_row)
 
+        # set the outer dur variable and save to order_state
+        dur = duration
+        order_state.duration = duration
+
         # build a placeholder path based on district for future asset mapping
-        # print(origin_district)
         if origin_district:
             slug = str(origin_district).lower().replace(' ', '_')
             # path = f"img/route_{slug}.avif"
@@ -492,7 +498,7 @@ def DateAndTimeView(page, order_state):
         collector_row = s.get('collector_row')
         stop_id = s.get('id', '')
         origin = s.get('origin_district', None)
-        # pass both collector row and origin district so we can update both cards
+        duration = s.get('duration', 0)
         stop_controls.append(
             create_stop_card(
                 stop_id,
@@ -502,7 +508,7 @@ def DateAndTimeView(page, order_state):
                 s.get('time2', ''),
                 s.get('wait_time', ''),
                 origin,
-                on_click=lambda e, row=collector_row, origin=origin: update_cards(row, origin),
+                on_click=lambda e, row=collector_row, origin=origin, duration=duration: update_cards(row, origin, duration),
             )
         )
 
