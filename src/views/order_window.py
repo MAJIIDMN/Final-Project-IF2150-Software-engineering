@@ -56,12 +56,17 @@ def main(page: ft.Page):
     top_nav = create_navbar(page, "order")
     navigate_to("/order/general-details")
 
-    main_container = ft.Column(
-        controls = [
-            top_nav,
-            content_area,
+    main_stack = ft.Stack(
+        controls=[
+            ft.Column(
+                controls=[
+                    top_nav,
+                    content_area,
+                ],
+                expand=True,
+            ),
         ],
         expand=True,
     )
 
-    page.add(main_container)
+    page.add(main_stack)
