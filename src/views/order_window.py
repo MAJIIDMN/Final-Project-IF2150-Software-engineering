@@ -1,6 +1,6 @@
 import flet as ft
 
-from views.navbar import create_navbar
+from views.components.navbar import create_navbar
 from views.order.general_details import GeneralDetailsView
 from views.order.address import AddressView
 from views.order.navigation import NavigationView

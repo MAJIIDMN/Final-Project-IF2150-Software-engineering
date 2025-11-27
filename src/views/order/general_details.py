@@ -1,4 +1,5 @@
 import flet as ft
+<<<<<<< HEAD
 from views.navbar import create_navbar
 from views.order.shared import create_sidebar
 
