@@ -448,7 +448,7 @@ def GeneralDetailsView(page, order_state):
 
     # Waste type images
     plastic_img = ft.Container(
-        content=ft.Image(src="https://recykal.com/wp-content/uploads/2021/11/12c26-017154e4-47d7-45af-95ab-ad3b8e4ff3f9-1.jpg", width=120,height=80,fit=ft.ImageFit.COVER),
+        content=ft.Image(src="img/plastic.jpg", width=120,height=80,fit=ft.ImageFit.COVER),
         width=120,
         height=80,
         bgcolor="#4a90e2",
@@ -459,7 +459,7 @@ def GeneralDetailsView(page, order_state):
     )
     
     metal_img = ft.Container(
-        content=ft.Image(src="https://media.generalkinematics.com/wp-content/uploads/2023/04/iStock-491962627.jpg", width=120,height=80,fit=ft.ImageFit.COVER),
+        content=ft.Image(src="img/metal.jpg", width=120,height=80,fit=ft.ImageFit.COVER),
         width=120,
         height=80,
         bgcolor="#5dade2",
@@ -470,7 +470,7 @@ def GeneralDetailsView(page, order_state):
     )
     
     clothes_img = ft.Container(
-        content=ft.Image(src="https://www.coventry.ac.uk/contentassets/e0764d99a985459fab1c995b519ed545/image4jo5.png", width=120,height=80,fit=ft.ImageFit.COVER),
+        content=ft.Image(src="img/clothes.png", width=120,height=80,fit=ft.ImageFit.COVER),
         width=120,
         height=80,
         bgcolor="#85929e",
