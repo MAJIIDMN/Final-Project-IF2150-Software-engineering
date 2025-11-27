@@ -11,23 +11,55 @@ def DateAndTimeView(page, order_state):
         page.go("/order/address")
     
     def select_collector(e):
-        # gunakan collector yang terakhir dipilih di stop card
+        # show confirmation dialog because order cannot be cancelled
         row = getattr(order_state, 'selected_collector_data', None)
-        if row is not None:
-            # row: (id, name, experience, vehicle, platenumber)
+        if row is None:
+            page.snack_bar = ft.SnackBar(ft.Text("No collector selected."))
+            page.snack_bar.open = True
+            page.update()
+            return
+
+        def _confirm_order(e_confirm):
+            # apply selection to state
             order_state.selected_collector = row[1]
             order_state.selected_collector_id = row[0]
             order_state.selected_collector_experience = row[2]
             order_state.selected_collector_vehicle = row[3]
             order_state.selected_collector_plate = row[4]
 
-        # placeholder untuk tanggal & waktu pickup (bisa dihubungkan ke stop nanti)
-        if not getattr(order_state, 'selected_date', None):
-            order_state.selected_date = "03/12/24"
-        if not getattr(order_state, 'selected_time', None):
-            order_state.selected_time = "14:18"
+            # placeholder for date & time if not set
+            if not getattr(order_state, 'selected_date', None):
+                order_state.selected_date = "03/12/24"
+            if not getattr(order_state, 'selected_time', None):
+                order_state.selected_time = "14:18"
 
-        page.go("/order/navigation")
+            # close dialog and navigate
+            try:
+                dialog.open = False
+            except Exception:
+                pass
+            page.update()
+            page.go("/order/navigation")
+
+        def _cancel(e_cancel):
+            try:
+                dialog.open = False
+            except Exception:
+                pass
+            page.update()
+
+        dialog = ft.AlertDialog(
+            title=ft.Text("Confirm Order"),
+            content=ft.Text("This order cannot be cancelled after being placed. Do you want to proceed?"),
+            actions=[
+                ft.TextButton("Cancel", on_click=_cancel),
+                ft.ElevatedButton("Confirm", on_click=_confirm_order, bgcolor="#2e7d32", color="white"),
+            ],
+        )
+        page.dialog = dialog
+        page.overlay.append(dialog)
+        dialog.open = True
+        page.update()
     
     # Stop point cards (timeline-style)
     def create_stop_card(stop_id, loc1, loc2, time1, time2, wait_time, wc_id, on_click=None):
