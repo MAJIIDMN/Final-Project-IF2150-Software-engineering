@@ -1,5 +1,6 @@
 import flet as ft
 from views.components.navbar import create_navbar
+from views.components import Alert
 from models.state import AppState
 
 app_state = AppState()
@@ -29,6 +30,11 @@ def main(page: ft.Page):
     new_password = ft.Ref[ft.TextField]()
     confirm_password = ft.Ref[ft.TextField]()
     profile_image = ft.Ref[ft.Image]()
+    
+    # Refs untuk buttons
+    save_email_btn = ft.Ref[ft.ElevatedButton]()
+    save_changes_btn = ft.Ref[ft.ElevatedButton]()
+    change_password_btn = ft.Ref[ft.ElevatedButton]()
 
     # TODO: Load user data from database
     user_data = {
@@ -41,6 +47,12 @@ def main(page: ft.Page):
         "kecamatan": "Bandung Wetan",
         "profile_image": "img/default_profile.png"
     }
+    
+    # Track original data for validation
+    original_email = user_data.get("email", "")
+    original_phone = user_data.get("phonenumber", "")
+    original_kecamatan = user_data.get("kecamatan", "")
+    email_verified = False
 
     # File picker untuk upload profile image
     def on_profile_picked(e: ft.FilePickerResultEvent):
@@ -58,23 +70,141 @@ def main(page: ft.Page):
             allowed_extensions=["png", "jpg", "jpeg", "gif", "bmp", "webp"],
             allow_multiple=False,
         )
+    
+    # Validation functions for buttons
+    def check_email_changed(e):
+        """Check if email changed and enable/disable save email button"""
+        if email_input.current and save_email_btn.current:
+            email_changed = email_input.current.value.strip() != original_email
+            save_email_btn.current.disabled = not email_changed
+            page.update()
+    
+    def check_profile_changed(e):
+        """Check if phone/kecamatan changed and enable/disable save changes button"""
+        if phone_input.current and kecamatan_input.current and save_changes_btn.current:
+            phone_changed = phone_input.current.value.strip() != original_phone
+            kecamatan_changed = kecamatan_input.current.value.strip() != original_kecamatan
+            save_changes_btn.current.disabled = not (phone_changed or kecamatan_changed)
+            page.update()
+    
+    def check_password_fields(e):
+        """Check password fields and enable/disable change password button"""
+        if current_password.current and new_password.current and confirm_password.current and change_password_btn.current:
+            # Check if all fields filled
+            all_filled = (
+                current_password.current.value and 
+                new_password.current.value and 
+                confirm_password.current.value
+            )
+            # Check if new password matches confirm
+            passwords_match = new_password.current.value == confirm_password.current.value
+            
+            # Show error if passwords don't match
+            if confirm_password.current.value and not passwords_match:
+                confirm_password.current.error_text = "Password confirmation does not match"
+            else:
+                confirm_password.current.error_text = None
+            
+            change_password_btn.current.disabled = not (all_filled and passwords_match)
+            page.update()
+    
+    # Email change handler
+    def on_save_email(e):
+        nonlocal email_verified, original_email
+        new_email = email_input.current.value.strip()
+        
+        # If email hasn't changed, just show info
+        if new_email == original_email:
+            info_dialog = ft.AlertDialog(
+                title=ft.Text("Info", color="#000000"),
+                content=ft.Text("Email has not been changed.", color="#000000"),
+                actions=[
+                    ft.TextButton("OK", on_click=lambda x: (setattr(info_dialog, 'open', False), page.update()))
+                ],
+            )
+            page.overlay.append(info_dialog)
+            info_dialog.open = True
+            page.update()
+            return
+        
+        # If email changed, require verification
+        email_verified = False
+        
+        def on_verification_success():
+            nonlocal email_verified, original_email
+            email_verified = True
+            original_email = new_email
+            # TODO: Save email to database here
+            # Disable save email button after successful save
+            if save_email_btn.current:
+                save_email_btn.current.disabled = True
+            success_dialog = ft.AlertDialog(
+                title=ft.Text("Success", color="#000000"),
+                content=ft.Text("Email verified and updated successfully!", color="#000000"),
+                actions=[
+                    ft.TextButton("OK", on_click=lambda x: (setattr(success_dialog, 'open', False), page.update()))
+                ],
+            )
+            page.overlay.append(success_dialog)
+            success_dialog.open = True
+            page.update()
+        
+        # Show verification dialog
+        verify_dialog = Alert.email_verification_dialog(page, new_email, on_verification_success)
+        page.overlay.append(verify_dialog)
+        verify_dialog.open = True
+        page.update()
 
     # Save profile handler
     def on_save_profile(e):
-        # TODO: Implement save logic here
-        print(f"Saving profile:")
-        print(f"Username: {username_input.current.value}")
-        print(f"Email: {email_input.current.value}")
-        print(f"Phone: {phone_input.current.value}")
-        print(f"Kecamatan: {kecamatan_input.current.value}")
+        # Check if email changed but not saved
+        current_email = email_input.current.value.strip()
+        if current_email != original_email:
+            error_dialog = ft.AlertDialog(
+                title=ft.Text("Email Not Saved", color="#d32f2f"),
+                content=ft.Text("Please save your email changes first before saving other profile changes.", color="#000000"),
+                actions=[
+                    ft.TextButton("OK", on_click=lambda x: (setattr(error_dialog, 'open', False), page.update()))
+                ],
+            )
+            page.overlay.append(error_dialog)
+            error_dialog.open = True
+            page.update()
+            return
         
-        # Show success dialog
-        dialog = ft.AlertDialog(
-            title=ft.Text("Success", color="#000000"),
-            content=ft.Text("Profile updated successfully!", color="#000000"),
-            actions=[
-                ft.TextButton("OK", on_click=lambda x: (setattr(dialog, 'open', False), page.update()))
-            ],
+        def confirm_save(e):
+            nonlocal original_phone, original_kecamatan
+            # TODO: Implement save logic here
+            print(f"Saving profile:")
+            print(f"Email: {email_input.current.value}")
+            print(f"Phone: {phone_input.current.value}")
+            print(f"Kecamatan: {kecamatan_input.current.value}")
+            
+            # Update original values after save
+            original_phone = phone_input.current.value.strip()
+            original_kecamatan = kecamatan_input.current.value.strip()
+            
+            # Disable save changes button after successful save
+            if save_changes_btn.current:
+                save_changes_btn.current.disabled = True
+            
+            # Show success dialog
+            success_dialog = ft.AlertDialog(
+                title=ft.Text("Success", color="#000000"),
+                content=ft.Text("Profile updated successfully!", color="#000000"),
+                actions=[
+                    ft.TextButton("OK", on_click=lambda x: (setattr(success_dialog, 'open', False), page.update()))
+                ],
+            )
+            page.overlay.append(success_dialog)
+            success_dialog.open = True
+            page.update()
+        
+        # Show confirmation dialog
+        dialog = Alert.confirm_alert_dialog(
+            "Confirm Save",
+            "Are you sure you want to save these changes?",
+            confirm_save
         )
         page.overlay.append(dialog)
         dialog.open = True
@@ -96,22 +226,37 @@ def main(page: ft.Page):
             page.update()
             return
         
-        print(f"Changing password:")
-        print(f"Current: {current_password.current.value}")
-        print(f"New: {new_password.current.value}")
+        def confirm_change(e):
+            print(f"Changing password:")
+            print(f"Current: {current_password.current.value}")
+            print(f"New: {new_password.current.value}")
+            
+            # Clear password fields
+            current_password.current.value = ""
+            new_password.current.value = ""
+            confirm_password.current.value = ""
+            
+            # Disable button after clearing fields
+            if change_password_btn.current:
+                change_password_btn.current.disabled = True
+            
+            # Show success dialog
+            success_dialog = ft.AlertDialog(
+                title=ft.Text("Success", color="#000000"),
+                content=ft.Text("Password changed successfully!", color="#000000"),
+                actions=[
+                    ft.TextButton("OK", on_click=lambda x: (setattr(success_dialog, 'open', False), page.update()))
+                ],
+            )
+            page.overlay.append(success_dialog)
+            success_dialog.open = True
+            page.update()
         
-        # Clear password fields
-        current_password.current.value = ""
-        new_password.current.value = ""
-        confirm_password.current.value = ""
-        
-        # Show success dialog
-        dialog = ft.AlertDialog(
-            title=ft.Text("Success", color="#000000"),
-            content=ft.Text("Password changed successfully!", color="#000000"),
-            actions=[
-                ft.TextButton("OK", on_click=lambda x: (setattr(dialog, 'open', False), page.update()))
-            ],
+        # Show confirmation dialog
+        dialog = Alert.confirm_alert_dialog(
+            "Confirm Password Change",
+            "Are you sure you want to change your password?",
+            confirm_change
         )
         page.overlay.append(dialog)
         dialog.open = True
@@ -171,6 +316,14 @@ def main(page: ft.Page):
                                             ft.Text("Account Information", size=16, weight=ft.FontWeight.BOLD, color="#000000"),
                                             ft.Divider(height=15, color="#e0e0e0"),
                                             ft.Row([
+                                                ft.Icon(ft.Icons.ACCOUNT_CIRCLE, color="#1e8c45", size=20),
+                                                ft.Column([
+                                                    ft.Text("Username", size=11, color="#666666"),
+                                                    ft.Text(user_data["username"], size=13, weight=ft.FontWeight.BOLD, color="#000000"),
+                                                ], spacing=2),
+                                            ], spacing=10),
+                                            ft.Container(height=10),
+                                            ft.Row([
                                                 ft.Icon(ft.Icons.BADGE, color="#1e8c45", size=20),
                                                 ft.Column([
                                                     ft.Text("User ID", size=11, color="#666666"),
@@ -216,31 +369,37 @@ def main(page: ft.Page):
                                     ft.Text("Personal Information", size=20, weight=ft.FontWeight.BOLD, color="#000000"),
                                     ft.Container(height=15),
                                     
-                                    # Username
-                                    ft.TextField(
-                                        ref=username_input,
-                                        label="Username *",
-                                        value=user_data["username"],
-                                        border_color="#e0e0e0",
-                                        focused_border_color="#1e8c45",
-                                        text_style=ft.TextStyle(size=14, color="#000000"),
-                                        height=55,
-                                        prefix_icon=ft.Icons.PERSON_OUTLINE,
-                                    ),
-                                    ft.Container(height=15),
-                                    
-                                    # Email
-                                    ft.TextField(
-                                        ref=email_input,
-                                        label="Email *",
-                                        value=user_data["email"],
-                                        border_color="#e0e0e0",
-                                        focused_border_color="#1e8c45",
-                                        text_style=ft.TextStyle(size=14, color="#000000"),
-                                        height=55,
-                                        prefix_icon=ft.Icons.EMAIL_OUTLINED,
-                                        keyboard_type=ft.KeyboardType.EMAIL,
-                                    ),
+                                    # Email with Save button
+                                    ft.Row([
+                                        ft.TextField(
+                                            ref=email_input,
+                                            label="Email *",
+                                            value=user_data["email"],
+                                            border_color="#e0e0e0",
+                                            focused_border_color="#1e8c45",
+                                            text_style=ft.TextStyle(size=14, color="#000000"),
+                                            height=55,
+                                            prefix_icon=ft.Icons.EMAIL_OUTLINED,
+                                            keyboard_type=ft.KeyboardType.EMAIL,
+                                            expand=True,
+                                            on_change=check_email_changed,
+                                        ),
+                                        ft.Container(width=10),
+                                        ft.ElevatedButton(
+                                            "Save Email",
+                                            ref=save_email_btn,
+                                            icon=ft.Icons.SAVE,
+                                            on_click=on_save_email,
+                                            bgcolor="#1e8c45",
+                                            color="white",
+                                            height=55,
+                                            disabled=True,
+                                            style=ft.ButtonStyle(
+                                                text_style=ft.TextStyle(size=13, font_family="PoppinsSBold"),
+                                                shape=ft.RoundedRectangleBorder(radius=8),
+                                            ),
+                                        ),
+                                    ], spacing=0),
                                     ft.Container(height=15),
                                     
                                     # Phone Number
@@ -254,6 +413,7 @@ def main(page: ft.Page):
                                         height=55,
                                         prefix_icon=ft.Icons.PHONE_OUTLINED,
                                         keyboard_type=ft.KeyboardType.PHONE,
+                                        on_change=check_profile_changed,
                                     ),
                                     ft.Container(height=15),
                                     
@@ -267,17 +427,20 @@ def main(page: ft.Page):
                                         text_style=ft.TextStyle(size=14, color="#000000"),
                                         height=55,
                                         prefix_icon=ft.Icons.LOCATION_ON_OUTLINED,
+                                        on_change=check_profile_changed,
                                     ),
                                     ft.Container(height=25),
                                     
                                     # Save button
                                     ft.ElevatedButton(
                                         "Save Changes",
+                                        ref=save_changes_btn,
                                         icon=ft.Icons.SAVE,
                                         on_click=on_save_profile,
                                         bgcolor="#1e8c45",
                                         color="white",
                                         height=45,
+                                        disabled=True,
                                         style=ft.ButtonStyle(
                                             text_style=ft.TextStyle(size=14, font_family="PoppinsSBold"),
                                             shape=ft.RoundedRectangleBorder(radius=8),
@@ -301,6 +464,7 @@ def main(page: ft.Page):
                                         text_style=ft.TextStyle(size=14, color="#000000"),
                                         height=55,
                                         prefix_icon=ft.Icons.LOCK_OUTLINE,
+                                        on_change=check_password_fields,
                                     ),
                                     ft.Container(height=15),
                                     
@@ -315,6 +479,7 @@ def main(page: ft.Page):
                                         text_style=ft.TextStyle(size=14, color="#000000"),
                                         height=55,
                                         prefix_icon=ft.Icons.LOCK_OUTLINE,
+                                        on_change=check_password_fields,
                                     ),
                                     ft.Container(height=15),
                                     
@@ -329,17 +494,20 @@ def main(page: ft.Page):
                                         text_style=ft.TextStyle(size=14, color="#000000"),
                                         height=55,
                                         prefix_icon=ft.Icons.LOCK_OUTLINE,
+                                        on_change=check_password_fields,
                                     ),
                                     ft.Container(height=25),
                                     
                                     # Change Password button
                                     ft.ElevatedButton(
                                         "Change Password",
+                                        ref=change_password_btn,
                                         icon=ft.Icons.KEY,
                                         on_click=on_change_password,
                                         bgcolor="#d32f2f",
                                         color="white",
                                         height=45,
+                                        disabled=True,
                                         style=ft.ButtonStyle(
                                             text_style=ft.TextStyle(size=14, font_family="PoppinsSBold"),
                                             shape=ft.RoundedRectangleBorder(radius=8),
