@@ -22,9 +22,9 @@ def main(page: ft.Page):
     page.theme = ft.Theme(font_family="Poppins")
     
     # Create Point Mart Control component
-    mart_control_page = create_point_mart_control(page)
 
     products = point_mart.load_hadiah()
+    page_active = create_point_mart_control(page)
     
     # Fungsi untuk mengubah warna button filter
     def update_button_colors(active_idx):
@@ -36,6 +36,25 @@ def main(page: ft.Page):
                 btn.bgcolor = "#cccccc"
                 btn.color = "#666666"
         page.update()
+
+    def refresh_page(e):
+        page.clean()
+        page.admin_control_main(page)
+        page.update()
+
+    def point_mart_control(e):
+        nonlocal page_active
+        page.clean()
+        page_active = create_point_mart_control(page)
+        refresh_page(e)
+        update_button_colors(0)
+
+    # def informasi_sampah_control(e):
+    #     nonlocal page_active
+    #     page.clean()
+    #     page_active = create_informasi_sampah_control(page)
+    #     refresh_page(e)
+    #     update_button_colors(1)
 
     # Top navigation bar
     top_nav = create_navbar(page, "Control Menu")
@@ -54,7 +73,7 @@ def main(page: ft.Page):
     martControl = ft.ElevatedButton(
         "Point Mart",
         width=float("inf"),
-        on_click=lambda e: update_button_colors(0),
+        on_click=lambda e: point_mart_control(0),
         height=40,
         bgcolor="#1e8c45",
         color="white",
@@ -64,7 +83,7 @@ def main(page: ft.Page):
         ),
     )
     orderControl = ft.ElevatedButton(
-        "Order",
+        "Informasi Sampah",
         width=float("inf"),
         on_click=lambda e: update_button_colors(1),
         height=40,
@@ -148,7 +167,7 @@ def main(page: ft.Page):
             ),
             ft.Container(width=20),
             ft.Container(
-                content=mart_control_page,
+                content=page_active,
                 expand=True,
             ),
         ],
