@@ -198,6 +198,9 @@ def main(page: ft.Page):
                                         ref=checkbox,
                                         label="Remember me",
                                         on_change=on_checkbox_change,
+                                        label_style=ft.TextStyle(
+                                        color="#000000",      # warna teks label
+                                        ),
                                     ),
                                     ft.TextButton(
                                         "Forgot Password",
