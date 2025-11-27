@@ -79,7 +79,6 @@ def email_verification_dialog(page, new_email, on_verify_success):
     
     def send_verification_code(e):
         # TODO: Implement send email verification code logic
-        print(f"Sending verification code to {new_email}")
         # Show success message
         error_text.current.value = "Verification code sent to your email!"
         error_text.current.color = "#1e8c45"

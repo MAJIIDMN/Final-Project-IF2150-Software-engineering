@@ -16,8 +16,6 @@ class AccountController:
         self.is_logged_in = False
 
     def register(self, first_name, last_name, email, phone, address, password):
-        print("\n--- REGISTER ---")
-
         role = 'client'
         username = f"{first_name}_{last_name}".lower()
         kecamatan = "default_kecamatan"
@@ -30,10 +28,8 @@ class AccountController:
         success, message = self.db.execute_query(query, (new_user.id, username, password, email, role, kecamatan))
 
         if success:
-            print(f"Registrasi berhasil! ID Anda: {new_user.id}")
             return new_user, message
         else:
-            print("Gagal: Username mungkin sudah terpakai.")
             return None, None
 
 
@@ -71,8 +67,6 @@ class AccountController:
         """Membuat pesanan baru (Khusus Client)."""
         if not self.is_logged_in or self.current_user.role != 'client':
             return
-
-        print("\n--- BUAT ORDER ---")
         jenis = input("Jenis Sampah: ")
         berat = float(input("Berat (kg): "))
         from_point = input("Titik asal (a/b/c/d/e): ").strip().lower()
@@ -145,20 +139,22 @@ class AccountController:
             return False
         
 
-    def find_user_with_email(self, email):
-        query = "SELECT * FROM users WHERE email = ?"
-        row = self.db.fetch_one(query, (email,))
-        uid, username, password, mail, phone, kecamatan, role, point = row
-        return User(
-            username=username,
-            password=password,
-            email=mail,
-            phonenumber=phone,
-            kecamatan=kecamatan,
-            role=role,
-            point=point,
-            uid=uid,  # penting karena user dari database
-        )
+    def find_user(self, username):
+        query = "SELECT * FROM users WHERE username = ?"
+        row = self.db.fetch_one(query, (username,))
+        if row:
+            return User(
+                username=row[1],
+                password=row[2],
+                email=row[3],
+                phonenumber=row[4],
+                kecamatan=row[7],
+                role=row[5],
+                point=row[6],
+                uid=row[0],
+                profile_path=row[8]
+            )
+        return None
     
     def find_email_of_user(self, username):
         query = "SELECT email FROM users WHERE username = ?"
@@ -168,7 +164,11 @@ class AccountController:
             return row[0]   # email
         return None
             
-    def change_password(self, new_pass, email):
-        query = "UPDATE users SET password = ? WHERE email = ?"
-        success, message = self.db.execute_query(query, (new_pass, email))
-        return success, message
+    def change_password(self, current_pass, new_pass, username):
+        query = "SELECT password FROM users WHERE username = ?"
+        row = self.db.fetch_one(query, (username,))
+        if current_pass != row[0]:
+            return False
+        query = "UPDATE users SET password = ? WHERE username = ?"
+        self.db.execute_query(query, (new_pass, username))
+        return True
