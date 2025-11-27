@@ -5,10 +5,18 @@ from views.components import Alert
 point_mart = PointMart()
 
 def create_point_mart_control(page: ft.Page):
+    product_list = point_mart.load_hadiah()
     """
     Creates the Point Mart Control panel component for admin page.
     Returns the complete UI container with table and product management.
     """
+    
+    # Sort state
+    sort_by = None  # 'points' or 'stock'
+    sort_ascending = True
+    
+    # Search state
+    search_query = ""
     
     # Function to navigate to edit page
     def go_to_edit(product):
@@ -96,10 +104,64 @@ def create_point_mart_control(page: ft.Page):
     
     # Product list view reference
     product_list_view = ft.Ref[ft.ListView]()
+    search_field = ft.Ref[ft.TextField]()
+    points_sort_icon = ft.Ref[ft.Icon]()
+    stock_sort_icon = ft.Ref[ft.Icon]()
+    
+    # Function to handle sort
+    def on_sort(column):
+        nonlocal sort_by, sort_ascending, product_list
+        
+        if sort_by == column:
+            sort_ascending = not sort_ascending
+        else:
+            sort_by = column
+            sort_ascending = True
+        
+        # Update icons
+        if column == 'points':
+            points_sort_icon.current.name = ft.Icons.ARROW_UPWARD if sort_ascending else ft.Icons.ARROW_DOWNWARD
+            points_sort_icon.current.color = "#1e8c45"
+            stock_sort_icon.current.name = ft.Icons.UNFOLD_MORE
+            stock_sort_icon.current.color = "#999999"
+            if sort_ascending:
+                product_list = point_mart.sort_by_points_down(product_list)
+            else:
+                product_list = point_mart.sort_by_points_up(product_list)
+        else:
+            stock_sort_icon.current.name = ft.Icons.ARROW_UPWARD if sort_ascending else ft.Icons.ARROW_DOWNWARD
+            stock_sort_icon.current.color = "#1e8c45"
+            points_sort_icon.current.name = ft.Icons.UNFOLD_MORE
+            points_sort_icon.current.color = "#999999"
+            if sort_ascending:
+                product_list = point_mart.sort_by_stock_down(product_list)
+            else:
+                product_list = point_mart.sort_by_stock_up(product_list)
+        product_list_view.current.controls.clear()
+        for product in product_list:
+            product_list_view.current.controls.append(create_product_row(product))
+        page.update()
+    
+    # Function to handle search
+    def on_search_change(e):
+        nonlocal search_query
+        search_query = e.control.value
+        product_list = point_mart.search_hadiah(search_query)
+        product_list_view.current.controls.clear()
+        for product in product_list:
+            product_list_view.current.controls.append(create_product_row(product))
+        page.update()
     
     # Function to load products from database
     def load_products():
-        product_list = point_mart.load_hadiah()
+        
+        # TODO: Apply search filter (implement in backend)
+        # if search_query:
+        #     product_list = point_mart.search_hadiah(search_query)
+        
+        # TODO: Apply sorting (implement in backend)
+        # if sort_by:
+        #     product_list = point_mart.sort_hadiah(product_list, sort_by, sort_ascending)
         
         # Clear and populate list
         product_list_view.current.controls.clear()
@@ -136,6 +198,21 @@ def create_point_mart_control(page: ft.Page):
                 ),
                 ft.Container(height=20),
                 
+                # Search Bar
+                ft.Container(
+                    content=ft.TextField(
+                        ref=search_field,
+                        hint_text="Search by ID, Name, or Category",
+                        prefix_icon=ft.Icons.SEARCH,
+                        border_color="#e0e0e0",
+                        focused_border_color="#1e8c45",
+                        on_change=on_search_change,
+                        text_style=ft.TextStyle(size=14, color="#000000"),
+                        height=50,
+                    ),
+                    margin=ft.margin.only(bottom=20),
+                ),
+                
                 # Table Header
                 ft.Container(
                     content=ft.Row(
@@ -153,11 +230,37 @@ def create_point_mart_control(page: ft.Page):
                                 width=120,
                             ),
                             ft.Container(
-                                content=ft.Text("Points", size=12, weight=ft.FontWeight.BOLD, color="#666666"),
+                                content=ft.Row(
+                                    [
+                                        ft.Text("Points", size=12, weight=ft.FontWeight.BOLD, color="#666666"),
+                                        ft.IconButton(
+                                            icon=ft.Icons.UNFOLD_MORE,
+                                            icon_size=16,
+                                            icon_color="#999999",
+                                            tooltip="Sort by Points",
+                                            on_click=lambda e: on_sort('points'),
+                                            ref=points_sort_icon,
+                                        ),
+                                    ],
+                                    spacing=0,
+                                ),
                                 width=100,
                             ),
                             ft.Container(
-                                content=ft.Text("Stock", size=12, weight=ft.FontWeight.BOLD, color="#666666"),
+                                content=ft.Row(
+                                    [
+                                        ft.Text("Stock", size=12, weight=ft.FontWeight.BOLD, color="#666666"),
+                                        ft.IconButton(
+                                            icon=ft.Icons.UNFOLD_MORE,
+                                            icon_size=16,
+                                            icon_color="#999999",
+                                            tooltip="Sort by Stock",
+                                            on_click=lambda e: on_sort('stock'),
+                                            ref=stock_sort_icon,
+                                        ),
+                                    ],
+                                    spacing=0,
+                                ),
                                 width=80,
                             ),
                             ft.Container(

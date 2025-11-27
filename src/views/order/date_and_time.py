@@ -456,9 +456,43 @@ def DateAndTimeView(page, order_state):
         collector_card.visible = False
         collector_card.update()
 
+    # --- Route box helpers (mirror collector_card mechanism) ---
+    def show_route_box(path: str):
+        # set the image source for the route box and make it visible
+        try:
+            # replace inner image content with new image path
+            route_image_inner.content = ft.Image(src=path, fit=ft.ImageFit.COVER, expand=True)
+        except Exception:
+            # fallback: use default image if replacement fails
+            route_image_inner.content = ft.Image(src="img/order-bg-image.avif", fit=ft.ImageFit.COVER, expand=True)
+        # ensure the map card is visible and updated
+        map_image_box.visible = True
+        route_image_inner.update()
+        map_image_box.update()
+
+    def update_cards(collector_row, origin_district):
+        # aggregator: show both collector card and route box when a stop is clicked
+        # show collector card (existing behavior)
+        update_collector_data(collector_row)
+
+        # build a placeholder path based on district for future asset mapping
+        # print(origin_district)
+        if origin_district:
+            slug = str(origin_district).lower().replace(' ', '_')
+            # path = f"img/route_{slug}.avif"
+            # ganti klo udh dpt path yg bener
+            path = "img/order-bg-image.avif"
+        else:
+            path = "img/order-bg-image.avif"
+
+        # show route box with computed path
+        show_route_box(path)
+
     for s in stops:
         collector_row = s.get('collector_row')
         stop_id = s.get('id', '')
+        origin = s.get('origin_district', None)
+        # pass both collector row and origin district so we can update both cards
         stop_controls.append(
             create_stop_card(
                 stop_id,
@@ -467,8 +501,8 @@ def DateAndTimeView(page, order_state):
                 s.get('time1', ''),
                 s.get('time2', ''),
                 s.get('wait_time', ''),
-                s.get('origin_district', ''),
-                on_click=lambda e, row=collector_row: update_collector_data(row),
+                origin,
+                on_click=lambda e, row=collector_row, origin=origin: update_cards(row, origin),
             )
         )
 
@@ -514,17 +548,57 @@ def DateAndTimeView(page, order_state):
         padding=40,
     )
     
-    collector_card = ft.Container(visible=False, right=40, bottom=40)
+    # constants for map box and spacing
+    _map_top = 40
+    _map_inner_w = 520
+    _map_inner_h = 420
+    _map_outer_pad = 12
+    _map_outer_w = _map_inner_w + (_map_outer_pad * 2)
+    _map_outer_h = _map_inner_h + (_map_outer_pad * 2) + 32  # extra space for title and spacing
+    _map_gap = 40  # desired gap between map box and collector card (same as top padding)
+
+    # inner container for the route image so we can swap its content dynamically
+    route_image_inner = ft.Container(
+        content=ft.Image(src="img/order-bg-image.avif", fit=ft.ImageFit.COVER, expand=True),
+        border_radius=12,
+        clip_behavior=ft.ClipBehavior.HARD_EDGE,
+        width=_map_inner_w,
+        height=_map_inner_h,
+    )
+
+    # Image box in the upper-right, styled similar to the collector card
+    map_image_box = ft.Container(
+        content=ft.Column(
+            controls=[
+                ft.Text("Chosen Route", size=14, weight=ft.FontWeight.BOLD, color="#000000"),
+                route_image_inner,
+            ],
+            spacing=10,
+        ),
+        bgcolor="white",
+        border=ft.border.all(1, "#f0f0f0"),
+        border_radius=12,
+        padding=_map_outer_pad,
+        width=_map_outer_w,
+        height=_map_outer_h,
+        right=40,
+        top=_map_top,
+        visible=False,
+        shadow=ft.BoxShadow(spread_radius=0, blur_radius=12, color=ft.Colors.with_opacity(0.06, "#000000")),
+    )
+
+    # collector card placed below the map box with the same gap as map top padding
+    collector_card_top = _map_top + _map_outer_h + _map_gap
+    collector_card = ft.Container(visible=False, right=40, top=collector_card_top)
     collector_card.content = build_collector_card(getattr(order_state, 'selected_collector_data', None))
 
     # Layout with map background
     content = ft.Stack(
         controls=[
             # Map background placeholder
-            ft.Container(
-                bgcolor="#e0e0e0",
-                expand=True,
-            ),
+                    # background placeholder removed so the global bg_container can show
+                    ft.Container(expand=True),
+                    
             # White card with form
             ft.Row(
                 controls=[
@@ -545,7 +619,8 @@ def DateAndTimeView(page, order_state):
                 ],
                 spacing=0,
             ),
-            # floating collector card at bottom-right
+            # floating map image (upper-right) and collector card (bottom-right)
+            map_image_box,
             collector_card,
         ],
         expand=True,

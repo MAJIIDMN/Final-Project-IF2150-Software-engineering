@@ -63,7 +63,7 @@ class PointMart(PointMartdb):
     
     def search_hadiah(self, keyword):
         all_hadiah = self.load_hadiah()
-        filtered_hadiah = [hadiah for hadiah in all_hadiah if keyword.lower() in hadiah['name'].lower() or keyword.lower() in hadiah['category'].lower()]
+        filtered_hadiah = [hadiah for hadiah in all_hadiah if keyword.lower() in hadiah['name'].lower() or keyword.lower() in hadiah['category'].lower() or keyword.lower() in hadiah['id'].lower()]
         return filtered_hadiah
     
     def redeem_hadiah(self, username, hadiah_id: str, list_hadiah: list):   
