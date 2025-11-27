@@ -1,6 +1,7 @@
 import flet as ft
 from views.components.navbar import create_navbar
 from views.components.point_mart_control import create_point_mart_control
+from views.components.waste_info_control import create_waste_info_control
 from models.PointMart import PointMart
 
 point_mart = PointMart()
@@ -22,9 +23,10 @@ def main(page: ft.Page):
     page.theme = ft.Theme(font_family="Poppins")
     
     # Create Point Mart Control component
-    mart_control_page = create_point_mart_control(page)
 
     products = point_mart.load_hadiah()
+    page_active = create_point_mart_control(page)
+    page_active_container = ft.Ref[ft.Container]()
     
     # Fungsi untuk mengubah warna button filter
     def update_button_colors(active_idx):
@@ -35,6 +37,20 @@ def main(page: ft.Page):
             else:
                 btn.bgcolor = "#cccccc"
                 btn.color = "#666666"
+        page.update()
+
+    def point_mart_control(e):
+        nonlocal page_active
+        page_active = create_point_mart_control(page)
+        page_active_container.current.content = page_active
+        update_button_colors(0)
+        page.update()
+
+    def informasi_sampah_control(e):
+        nonlocal page_active
+        page_active = create_waste_info_control(page)
+        page_active_container.current.content = page_active
+        update_button_colors(1)
         page.update()
 
     # Top navigation bar
@@ -54,7 +70,7 @@ def main(page: ft.Page):
     martControl = ft.ElevatedButton(
         "Point Mart",
         width=float("inf"),
-        on_click=lambda e: update_button_colors(0),
+        on_click=lambda e: point_mart_control(0),
         height=40,
         bgcolor="#1e8c45",
         color="white",
@@ -64,9 +80,9 @@ def main(page: ft.Page):
         ),
     )
     orderControl = ft.ElevatedButton(
-        "Order",
+        "Informasi Sampah",
         width=float("inf"),
-        on_click=lambda e: update_button_colors(1),
+        on_click=informasi_sampah_control,
         height=40,
         bgcolor="#cccccc",
         color="#666666",
@@ -148,7 +164,8 @@ def main(page: ft.Page):
             ),
             ft.Container(width=20),
             ft.Container(
-                content=mart_control_page,
+                ref=page_active_container,
+                content=page_active,
                 expand=True,
             ),
         ],

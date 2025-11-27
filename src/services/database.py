@@ -219,7 +219,7 @@ class DatabaseService:
         waste_info = {}
 
         for _, row in df.iterrows():
-            key = row["text_part"]
+            key = row["jenis"]
 
             waste_info[key] = {
                 "title": row["title"],

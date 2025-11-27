@@ -6,10 +6,6 @@ point_mart = PointMart()
 
 def create_point_mart_control(page: ft.Page):
     product_list = point_mart.load_hadiah()
-    """
-    Creates the Point Mart Control panel component for admin page.
-    Returns the complete UI container with table and product management.
-    """
     
     # Sort state
     sort_by = None  # 'points' or 'stock'
@@ -140,34 +136,24 @@ def create_point_mart_control(page: ft.Page):
         product_list_view.current.controls.clear()
         for product in product_list:
             product_list_view.current.controls.append(create_product_row(product))
-        page.update()
+        mart_control_container.update()
     
     # Function to handle search
     def on_search_change(e):
-        nonlocal search_query
+        nonlocal search_query, product_list
         search_query = e.control.value
         product_list = point_mart.search_hadiah(search_query)
         product_list_view.current.controls.clear()
         for product in product_list:
             product_list_view.current.controls.append(create_product_row(product))
-        page.update()
+        mart_control_container.update()
     
     # Function to load products from database
     def load_products():
-        
-        # TODO: Apply search filter (implement in backend)
-        # if search_query:
-        #     product_list = point_mart.search_hadiah(search_query)
-        
-        # TODO: Apply sorting (implement in backend)
-        # if sort_by:
-        #     product_list = point_mart.sort_hadiah(product_list, sort_by, sort_ascending)
-        
-        # Clear and populate list
+        nonlocal product_list
         product_list_view.current.controls.clear()
         for product in product_list:
             product_list_view.current.controls.append(create_product_row(product))
-        page.update()
     
     # Function to handle add new product
     def on_add_product(e):
@@ -292,8 +278,6 @@ def create_point_mart_control(page: ft.Page):
             expand=True,
         ),
     )
-    
-    # Load products when component is created
     load_products()
     
     return mart_control_container

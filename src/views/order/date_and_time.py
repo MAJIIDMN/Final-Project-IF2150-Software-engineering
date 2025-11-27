@@ -81,12 +81,30 @@ def DateAndTimeView(page, order_state):
             page.update()
 
         dialog = ft.AlertDialog(
-            title=ft.Text("Confirm Order"),
-            content=ft.Text("This order cannot be cancelled after being placed. Do you want to proceed?"),
+            title=ft.Text(
+                "Confirm Order",
+                color="#000000",            # ← warna hitam
+            ),
+            content=ft.Text(
+                "This order cannot be cancelled after being placed. Do you want to proceed?",
+                color="#000000",            # ← warna hitam
+            ),
             actions=[
-                ft.TextButton("Cancel", on_click=_cancel),
-                ft.ElevatedButton("Confirm", on_click=_confirm_order, bgcolor="#2e7d32", color="white"),
+                ft.TextButton(
+                    "Cancel",
+                    on_click=_cancel,
+                    style=ft.ButtonStyle(
+                        color="#524F4F",    # ← warna teks tombol Cancel
+                    ),
+                ),
+                ft.ElevatedButton(
+                    "Confirm",
+                    on_click=_confirm_order,
+                    bgcolor="#2e7d32",
+                    color="white",
+                ),
             ],
+            bgcolor="#ffffff",
         )
         page.dialog = dialog
         page.overlay.append(dialog)
