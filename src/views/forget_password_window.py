@@ -44,7 +44,7 @@ def main(page: ft.Page):
             email.current.error_text = None
         user = ac.find_user_with_email(email.current.value)
         if user is None:
-            message = "email ini tidak terdaftar!"
+            message = "Email ini tidak terdaftar!"
         else:
             message = None
         email.current.error_text = message    
@@ -77,7 +77,8 @@ def main(page: ft.Page):
         if validate_email(e) is True:
             if is_valid:
                 user = ac.find_user_with_email(email.current.value)
-                state.change_state(True, user.username, user.role)
+                state.change_state(True, False, user.username, user.role)
+                state.save_state()
                 page.clean()
                 page.forget_password_verify_main(page)
 

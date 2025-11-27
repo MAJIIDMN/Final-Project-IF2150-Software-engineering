@@ -107,7 +107,7 @@ def main(page: ft.Page):
                 ),
                 ft.Row(
                     [
-                        ft.Image(src="img/logo_only.png", width=200),
+                        ft.Image(src="img/logo.png", width=200),
                     ],
                     spacing=10,
                     vertical_alignment=ft.CrossAxisAlignment.CENTER,
@@ -137,6 +137,7 @@ def main(page: ft.Page):
                 color="#313131",
                 opacity=0.75,
             ),
+            ft.Container(height=30),
             ft.TextField(
                 ref=verify_code,
                 label="Enter Code",
@@ -149,16 +150,7 @@ def main(page: ft.Page):
                 on_focus=lambda e: on_focus(e, verify_code),
                 on_blur=lambda e: validate_code(e),
             ),
-            ft.Row(
-                [
-                    ft.Text("Didn't receive a code? ", color="#313131", opacity=0.75),
-                    ft.TextButton("Resend", on_click=lambda e: None, style=ft.ButtonStyle(
-                        color="#1e8c45"
-                    )),
-                ],
-                spacing=0,
-            ),
-            ft.Container(height=20),
+            ft.Container(height=5),
             ft.ElevatedButton(
                 "Verify",
                 on_click=submit_verification,
