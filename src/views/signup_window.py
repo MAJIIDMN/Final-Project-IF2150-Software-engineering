@@ -12,8 +12,6 @@ fonts = {
 
 acc = AccountController()  
 
-
-
 def main(page: ft.Page):
     page.title = "GrowBak - Sign Up"
     page.window_width = 1440

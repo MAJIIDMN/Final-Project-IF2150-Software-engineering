@@ -211,7 +211,7 @@ def create_navbar(page, active_page="home"):
                         ],
                     )
     if AppState.is_logged_in:
-        if app_state.role == "Admin":
+        if app_state.role == "admin":
             profil = profil_admin
         else:
             profil = profil_popup
