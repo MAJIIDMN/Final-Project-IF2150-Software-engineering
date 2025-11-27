@@ -38,6 +38,10 @@ def create_navbar(page, active_page="home"):
         page.clean()
         page.info_main(page)
     
+    def go_to_profile(e):
+        page.clean()
+        page.profil_main(page)
+    
     # Fungsi untuk membuat style text sesuai active page
     def get_nav_text_style(page_name):
         if page_name == active_page:
@@ -115,6 +119,7 @@ def create_navbar(page, active_page="home"):
                                     ],
                                     spacing=10,
                                 ),
+                                on_click=go_to_profile,
                             ),
                             ft.PopupMenuItem(),
                             ft.PopupMenuItem(
@@ -168,6 +173,7 @@ def create_navbar(page, active_page="home"):
                                     ],
                                     spacing=10,
                                 ),
+                                on_click=go_to_profile,
                             ),
                             ft.PopupMenuItem(),
                             ft.PopupMenuItem(

@@ -1,6 +1,6 @@
 import flet as ft
 import re
-from views.navbar import create_navbar
+from views.components.navbar import create_navbar
 
 fonts = {
     "Poppins": "fonts/poppins/Poppins-Regular.ttf",

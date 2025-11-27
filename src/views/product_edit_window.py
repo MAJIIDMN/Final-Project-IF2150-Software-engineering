@@ -1,5 +1,5 @@
 import flet as ft
-from views.navbar import create_navbar
+from views.components.navbar import create_navbar
 import views.components.Alert as Alert
 from models.PointMart import PointMart
 

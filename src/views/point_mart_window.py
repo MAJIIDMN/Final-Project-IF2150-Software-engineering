@@ -1,5 +1,5 @@
 import flet as ft
-from views.navbar import create_navbar
+from views.components.navbar import create_navbar
 from models.PointMart import PointMart
 
 point_mart = PointMart()
