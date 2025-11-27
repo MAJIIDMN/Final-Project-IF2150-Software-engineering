@@ -53,3 +53,10 @@ class PointMartdb:
         self.foto_path = foto_path
         self.description = description
         self.kategori = kategori
+
+class WasteInfo:
+    def __init__(self, jenis, title, text_part, image_path=""):
+        self.jenis = jenis
+        self.title = title
+        self.text_part = text_part
+        self.image_path = image_path

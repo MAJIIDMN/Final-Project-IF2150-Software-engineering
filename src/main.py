@@ -14,6 +14,7 @@ from views.home_window import main as home_main
 from views.informasi_sampah_window import main as info_main
 from views.admin_control_page import main as admin_control_main
 from views.product_edit_window import main as product_edit_main
+from views.waste_edit_page import main as waste_edit_main
 from views.profil_window import main as profil_main
 
 def app_main(page: ft.Page):
@@ -32,6 +33,7 @@ def app_main(page: ft.Page):
         page.info_main = info_main
         page.admin_control_main = admin_control_main
         page.product_edit_main = product_edit_main
+        page.waste_edit_main = waste_edit_main
         page.profil_main = profil_main
         home_main(page)
     except Exception as e:
