@@ -30,14 +30,9 @@ def NavigationView(page, order_state):
             if success:
                 # mark applied to avoid double-adding when navigating back and forth
                 order_state.point_gained_applied = True
-                page.snack_bar = ft.SnackBar(ft.Text(f"{pts:.2f} points added to your account."))
-                page.snack_bar.open = True
-                page.update()
             else:
-                # log or silently ignore - show snackbar for visibility
-                page.snack_bar = ft.SnackBar(ft.Text("Failed to update points."))
-                page.snack_bar.open = True
-                page.update()
+                # log or silently ignore - no snackbar here per request
+                pass
     # ambil data collector yang sudah dipilih di halaman Date and Time
     row = getattr(order_state, "selected_collector_data", None)
     if row is not None:
@@ -426,9 +421,15 @@ def NavigationView(page, order_state):
                                         ft.ElevatedButton("OK", on_click=_ok, bgcolor="#2e7d32", color="white"),
                                     ],
                                 )
-                                # Use page.dialog (do not manipulate page.overlay directly) —
-                                # Flet implementations vary; this approach is more portable.
-                                page.dialog = dialog
+                                # Use page.overlay.append so the dialog is shown reliably in this app.
+                                try:
+                                    page.overlay.append(dialog)
+                                except Exception:
+                                    # fallback: set page.dialog if overlay isn't available
+                                    try:
+                                        page.dialog = dialog
+                                    except Exception:
+                                        pass
                                 dialog.open = True
                                 page.update()
 
