@@ -51,16 +51,50 @@ Aplikasi akan terbuka di jendela desktop Anda.
 ```
 IF2150-2025-K01-G09-GrowBak/
 ├── src/
-│   ├── main.py              # Entry point aplikasi
-│   ├── controllers/         # Logic dan business rules
-│   ├── models/              # Struktur data dan database logic
-│   └── views/               # UI/Frontend (Login, Sign Up, Dashboard)
-├── doc/                     # Dokumentasi
-├── fonts/                   # Font files (Poppins)
-├── img/                     # Asset images
-├── tests/                   # Unit tests
-├── requirements.txt         # Dependency list
-└── README.md               # File ini
+│   ├── main.py                      # Entry point aplikasi
+│   ├── controllers/                 # Logic dan business rules
+│   │   └── account_controller.py    # Controller untuk autentikasi & akun
+│   ├── models/                      # Struktur data dan database logic
+│   │   ├── user.py                  # Model User, Order, PointMartdb, WasteInfo
+│   │   ├── PointMart.py             # Model dan logic Point Mart
+│   │   ├── waste_info.py            # Controller waste information
+│   │   ├── navigator.py             # Navigation helper
+│   │   └── state.py                 # State management
+│   ├── services/                    # Services layer
+│   │   └── database.py              # Database service (SQLite)
+│   ├── views/                       # UI/Frontend components
+│   │   ├── login_window.py          # Halaman login
+│   │   ├── signup_window.py         # Halaman registrasi
+│   │   ├── home_window.py           # Dashboard utama
+│   │   ├── profil_window.py         # Halaman profil
+│   │   ├── point_mart_window.py     # Katalog hadiah
+│   │   ├── product_detail_window.py # Detail produk
+│   │   ├── product_edit_window.py   # Edit produk (Admin)
+│   │   ├── order_window.py          # Order pickup sampah
+│   │   ├── informasi_sampah_window.py # Info edukasi sampah
+│   │   ├── waste_edit_page.py       # Edit info sampah (Admin)
+│   │   ├── admin_control_page.py    # Control panel admin
+│   │   ├── forget_password_window.py    # Lupa password
+│   │   ├── forget_password_verify_window.py # Verifikasi reset
+│   │   ├── reset_password_window.py     # Reset password
+│   │   ├── components/              # Reusable UI components
+│   │   │   ├── navbar.py            # Navigation bar
+│   │   │   ├── Alert.py             # Alert dialogs
+│   │   │   ├── point_mart_control.py    # Admin point mart table
+│   │   │   └── waste_info_control.py    # Admin waste info table
+│   │   └── order/                   # Order-related components
+│   ├── database/                    # Database files & assets
+│   │   ├── growbak.db               # SQLite database
+│   │   ├── file/                    # CSV data files
+│   │   └── image/                   # Database images
+│   └── storage/                     # File storage
+├── doc/                             # Dokumentasi proyek
+├── fonts/                           # Font files (Poppins)
+│   └── poppins/                     # Poppins font family
+├── img/                             # Asset images
+├── my/                              # Development files
+├── requirements.txt                 # Dependency list
+└── README.md                        # File ini
 ```
 
 ## Arsitektur Proyek
