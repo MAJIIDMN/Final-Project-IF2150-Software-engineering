@@ -31,7 +31,7 @@ def main(page: ft.Page, product_data=None):
             "category": "",
             "points": 0,
             "stock": 0,
-            "image": "",
+            "image": "image.jpg",
             "description": "",
             "colors": [],
             "sizes": []

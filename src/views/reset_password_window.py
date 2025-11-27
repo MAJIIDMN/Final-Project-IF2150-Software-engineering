@@ -84,7 +84,7 @@ def main(page: ft.Page):
         page.update()
 
         if is_valid:
-            success, message = ac.reset_password(new_password.current.value, username)
+            ac.reset_password(new_password.current.value, username)
 
         show_success_dialog(username)
         go_to_login(e)
