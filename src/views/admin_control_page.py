@@ -91,31 +91,7 @@ def main(page: ft.Page):
             shape=ft.RoundedRectangleBorder(radius=8),
         ),
     )
-    userControl = ft.ElevatedButton(
-        "User",
-        width=float("inf"),
-        on_click=lambda e: update_button_colors(2),
-        height=40,
-        bgcolor="#cccccc",
-        color="#666666",
-        style=ft.ButtonStyle(
-            text_style=ft.TextStyle(size=12, font_family="PoppinsSBold"),
-            shape=ft.RoundedRectangleBorder(radius=8),
-        ),
-    )
-    wasteCollectorControl = ft.ElevatedButton(
-        "Waste Collector",
-        width=float("inf"),
-        on_click=lambda e: update_button_colors(3),
-        height=40,
-        bgcolor="#cccccc",
-        color="#666666",
-        style=ft.ButtonStyle(
-            text_style=ft.TextStyle(size=12, font_family="PoppinsSBold"),
-            shape=ft.RoundedRectangleBorder(radius=8),
-        ),
-    )
-    sort_buttons = [martControl, orderControl, userControl, wasteCollectorControl]
+    sort_buttons = [martControl, orderControl]
     
     filters_panel = ft.Container(
         content=ft.Column(
@@ -125,10 +101,6 @@ def main(page: ft.Page):
                 martControl,
                 ft.Container(height=6),
                 orderControl,
-                ft.Container(height=6),
-                userControl,
-                ft.Container(height=6),
-                wasteCollectorControl,
                 
                 ft.Divider(height=20, color="#e0e0e0"),
             ],
