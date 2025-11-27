@@ -279,10 +279,10 @@ def NavigationView(page, order_state):
         accent = "#2e7d32"
     elif 1 <= m <= 10:
         status_text = "The Driver is Close!"
-        accent = "#ff9800"
+        accent = "#1976d2"
     else:
         status_text = "The driver is on the way"
-        accent = "#1976d2"
+        accent = "#ff9800"
 
     def compute_status(mins):
         if mins == 0:
