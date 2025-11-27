@@ -1,5 +1,6 @@
 import flet as ft
 from views.components.navbar import create_navbar
+from views.navbar import create_navbar
 from views.order.shared import create_sidebar
 
 fonts = {
