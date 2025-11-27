@@ -1,8 +1,7 @@
 import flet as ft
 import re
 from views.components.navbar import create_navbar
-from services.database import DatabaseService
-
+from models.waste_info import wasteController
 
 fonts = {
     "Poppins": "fonts/poppins/Poppins-Regular.ttf",
@@ -11,8 +10,7 @@ fonts = {
 }
 
 def main(page: ft.Page):
-    db = DatabaseService()
-    texts = db.load_waste_info("src/database/file/texts.csv")
+    waste = wasteController()
     page.title = "GrowBak - Informasi Sampah"
     page.window_width = 1440
     page.window_height = 1024
@@ -30,8 +28,7 @@ def main(page: ft.Page):
     top_nav = create_navbar(page, "info")
 
     
-    def make_waste_section(type: str):
-        data = texts[type]  # dict: { title, desc, imgsource }
+    def make_waste_section(data):
 
         section = ft.Container(
             width=float("inf"),
@@ -43,7 +40,7 @@ def main(page: ft.Page):
                         content=ft.Column(
                             [
                                 ft.Text(
-                                    data["title"],
+                                    data.title,
                                     size=50,
                                     weight="bold",
                                     color="#145C39"
@@ -58,7 +55,7 @@ def main(page: ft.Page):
 
                     # image
                     ft.Image(
-                        src=data["imgsource"],
+                        src=data.image_path,
                         fit=ft.ImageFit.COVER,
                         width=float("inf")
                     ),
@@ -69,7 +66,7 @@ def main(page: ft.Page):
                         content=ft.Column(
                             [
                                 ft.Text(
-                                    data["desc"],
+                                    data.text_part,
                                     size=20,
                                     color="black",
                                     text_align=ft.TextAlign.JUSTIFY,
@@ -87,14 +84,23 @@ def main(page: ft.Page):
         )
 
         return section
+    
+    waste_list = waste.load_waste_info()
 
     main_container = ft.Column(
         [
             top_nav,
-            make_waste_section("plastic"),
-            make_waste_section("metal"),
-            make_waste_section("clothes"),
-
+            ft.Container(
+                width=float("inf"),
+                padding=ft.padding.symmetric(horizontal=100, vertical=20),
+                content=ft.Column(
+                    [
+                        make_waste_section(data)
+                        for data in waste_list
+                    ],
+                    spacing=30,
+                ),
+            ),
         ],
         expand=True,
         spacing=0,

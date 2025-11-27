@@ -553,8 +553,6 @@ def DateAndTimeView(page, order_state):
         duration = s.get('duration', 0)
         map_districts = s.get('map_districts', '')
         map_path = s.get('map_path', '')
-        print(origin)
-        print(map_path)
         stop_controls.append(
             create_stop_card(
                 stop_id,
