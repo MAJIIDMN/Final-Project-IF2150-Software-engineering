@@ -2,6 +2,7 @@ import flet as ft
 import re
 
 from controllers.account_controller import AccountController
+from views.components.Alert import create_alert_dialog as Alert
 ac = AccountController()
 
 from models.state import AppState
@@ -83,32 +84,24 @@ def main(page: ft.Page):
         page.update()
 
         if is_valid:
-            email = ac.find_email_of_user(username)
-            success, message = ac.change_password(new_password.current.value, email)
+            success, message = ac.reset_password(new_password.current.value, username)
 
-            def close_dialog(e):
-                dialog.open = False
-                page.update()
+        show_success_dialog(username)
+        go_to_login(e)
 
-            if success:
-                dialog = ft.AlertDialog(
-                    title=ft.Text("Berhasil!"),
-                    content=ft.Text("Password Anda telah berhasil diubah. Silakan login dengan password baru Anda"),
-                    actions=[ft.TextButton("OK", on_click=close_dialog)],
-                )
-            else:
-                dialog = ft.AlertDialog(
-                    title=ft.Text("Gagal!"),
-                    content=ft.Text(message),
-                    actions=[ft.TextButton("OK", on_click=close_dialog)],
-                )
-
-            page.dialog = dialog
-            dialog.open = True
+    # Fungsi tampilkan dialog success
+    def show_success_dialog(username):
+        def close_dialog(e):
+            dialog.open = False
             page.update()
-            page.clean()
-            page.login_main(page)
-
+        
+        dialog = Alert("Berhasil", f"Password berhasil direset, {username}!", on_ok=close_dialog)
+        page.dialog = dialog
+        page.overlay.append(dialog)
+        dialog.open = True
+        page.update()
+        page.clean()
+        
     # Right side - Image
     right_side = ft.Container(
         content=ft.Column(
@@ -157,7 +150,7 @@ def main(page: ft.Page):
     # Form column
     form_column = ft.Column(
         [   
-            ft.Container(height=150),
+            ft.Container(height=80),
             header_row,
             ft.Text(
                 "Set a password",
@@ -241,7 +234,7 @@ def main(page: ft.Page):
             alignment=ft.MainAxisAlignment.CENTER,
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
         ),
-        padding=50,
+        padding=20,
         alignment=ft.alignment.center,
     )
 

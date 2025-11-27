@@ -156,6 +156,23 @@ class AccountController:
             )
         return None
     
+    def find_user_with_email(self, email):
+        query = "SELECT * FROM users WHERE email = ?"
+        row = self.db.fetch_one(query, (email,))
+        if row:
+            return User(
+                username=row[1],
+                password=row[2],
+                email=row[3],
+                phonenumber=row[4],
+                kecamatan=row[7],
+                role=row[5],
+                point=row[6],
+                uid=row[0],
+                profile_path=row[8]
+            )
+        return None
+    
     def find_email_of_user(self, username):
         query = "SELECT email FROM users WHERE username = ?"
         row = self.db.fetch_one(query, (username,))
@@ -172,6 +189,12 @@ class AccountController:
         query = "UPDATE users SET password = ? WHERE username = ?"
         self.db.execute_query(query, (new_pass, username))
         return True
+    
+    def reset_password(self, new_pass, username):
+        """Reset password without checking current password (for password reset flow)"""
+        query = "UPDATE users SET password = ? WHERE username = ?"
+        success, message = self.db.execute_query(query, (new_pass, username))
+        return success, message
     
     def change_email(self, new_email, username):
         query = "UPDATE users SET email = ? WHERE username = ?"
