@@ -125,13 +125,13 @@ def main(page: ft.Page):
             products_grid.controls.append(product_card(product))
         page.update()
 
-    def search(e, keyword: str):
+    def search(e, keyword: str, hadiah):
         products_grid.controls.clear()
         if checkbox_availability.current.value and not checkbox_out_of_stock.current.value:
             hadiah = avail_hadiah
-        elif not checkbox_availability.current.value and checkbox_out_of_stock.current.value:
+        if not checkbox_availability.current.value and checkbox_out_of_stock.current.value:
             hadiah = non_avail_hadiah
-        elif not checkbox_availability.current.value and not checkbox_out_of_stock.current.value:
+        if not checkbox_availability.current.value and not checkbox_out_of_stock.current.value:
             hadiah = []
         searched_products = point_mart.search_hadiah(keyword)
         for product in searched_products:
@@ -140,7 +140,7 @@ def main(page: ft.Page):
         page.update()
     
     def on_search_change(e):
-        search(e, search_input.current.value)
+        search(e, search_input.current.value, products)
 
     # Top navigation bar
     top_nav = create_navbar(page, "point_mart")
@@ -336,7 +336,7 @@ def main(page: ft.Page):
                 cursor_color="#000000",
                 label_style=ft.TextStyle(color="#c2c2c2"),
                 on_focus=lambda e: on_focus(e, search_input),
-                on_blur=lambda e: on_blur_label(e, search_input),\
+                on_blur=lambda e: on_blur_label(e, search_input),
                 on_change=on_search_change,
             ),
             
